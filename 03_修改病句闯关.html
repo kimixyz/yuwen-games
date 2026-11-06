@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>修改病句 · 闯关小达人</title>
+<style>
+:root{
+  --ink:#2b3440; --blue:#1f6fb2; --green:#22a06b; --red:#d9483b;
+  --orange:#ef8f1e; --purple:#a8549a; --line:#e4ebf2; --soft:#f5f9fc; --gray:#7b8794;
+  --qfont:"KaiTi","楷体","STKaiti","Kaiti SC","SimSun","宋体","Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Microsoft YaHei","微软雅黑","PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans CJK SC",sans-serif;
+  color:var(--ink);background:linear-gradient(170deg,#e6f4ff 0%,#f2efff 55%,#fff6e5 100%);
+  min-height:100vh;display:flex;justify-content:center;
+  padding:0 10px calc(20px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%;
+}
+#app{width:100%;max-width:520px;padding-top:12px}
+
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.badge{
+  flex:1;background:#fff;border-radius:18px;padding:9px 13px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;
+}
+.badge .lv{font-size:15.5px;font-weight:800;color:var(--blue)}
+.badge .st{font-size:14px;letter-spacing:1px}
+.badge .pg{margin-left:auto;font-size:14px;color:var(--gray);font-weight:700}
+.iconbtn{width:46px;height:46px;flex:0 0 46px;border:0;border-radius:16px;background:#fff;font-size:22px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);cursor:pointer}
+.iconbtn:active{transform:scale(.94)}
+
+.card{background:#fff;border-radius:22px;padding:16px 15px;box-shadow:0 8px 24px rgba(43,52,64,.10);margin-bottom:12px}
+
+/* ---------- 规则卡（病句六类） ---------- */
+.rules{display:grid;gap:7px;margin-bottom:12px}
+.rc{
+  background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 11px;
+  display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 9px;
+}
+.rc .tag{font-size:13.5px;font-weight:800;color:#fff;border-radius:9px;padding:3px 8px;white-space:nowrap;font-family:var(--qfont)}
+.tag.cuo{background:#e07b39}.tag.can{background:#2f8fd0}.tag.da{background:#3f9e6c}
+.tag.gui{background:#8a6fbf}.tag.chong{background:#c2622f}.tag.mao{background:#a8549a}
+.rc .ar{font-size:15px;font-weight:800;color:var(--ink);white-space:nowrap}
+.rc .eg{grid-column:1/-1;font-family:var(--qfont);font-size:15px;color:#8b95a1;line-height:1.6}
+.rc.hot{border-color:var(--orange);background:#fff8ec;box-shadow:0 0 0 3px rgba(239,143,30,.18)}
+
+.std{
+  background:#fff;border:2px solid #cfe3f5;border-radius:16px;padding:10px 12px;margin-bottom:12px;
+  text-align:center;font-size:14px;font-weight:800;color:#5b6672;line-height:1.9;
+}
+.song{
+  background:#fff7e8;border:2px dashed #f0b96a;border-radius:18px;padding:12px 14px;
+  text-align:center;font-family:var(--qfont);font-size:17px;font-weight:800;color:#a35c11;
+  line-height:1.95;margin-bottom:12px;
+}
+
+.dots{display:flex;gap:7px;justify-content:center;margin:2px 0 12px}
+.dot{width:13px;height:13px;border-radius:50%;background:#dfe6ee}
+.dot.ok{background:var(--green)}
+.dot.now{background:var(--orange);animation:bounce .8s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+.qtip{font-family:var(--qfont);font-size:14.5px;color:var(--gray);font-weight:700;text-align:center;margin-bottom:8px;line-height:1.6}
+.qtip b{color:var(--orange)}
+.sentence{
+  font-family:var(--qfont);
+  font-size:25px;line-height:2;font-weight:600;text-align:left;
+  word-break:normal;line-break:strict;letter-spacing:0;
+}
+.glue{white-space:nowrap}
+/* 错误处：橙色波浪下划线（类比“圈出”）；当前空更亮；回顾里填错的红框 */
+.err{
+  text-decoration:underline wavy var(--orange);text-decoration-skip-ink:none;
+  color:#b5611a;font-weight:700;
+}
+.err.active{background:#fff3e0;border-radius:6px;text-decoration-color:#d9483b}
+.err.mark{text-decoration:underline wavy var(--red);color:var(--red);background:#fdeceb;border-radius:6px}
+/* 改对后：绿色显示正确字；删除处：绿色“（删去）”标记 */
+.fixok{color:var(--green);font-weight:700;background:#eafaf2;border-radius:6px}
+.delmark{color:var(--green);font-weight:800;background:#eafaf2;border-radius:6px;font-size:15px;padding:0 4px}
+
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+.opt{
+  flex:0 1 calc(33.33% - 8px);min-width:90px;max-width:150px;min-height:104px;height:auto;
+  border:3px solid #d8e2ec;border-radius:18px;background:#fff;
+  font-family:var(--qfont);
+  font-size:18px;font-weight:700;color:var(--ink);cursor:pointer;
+  box-shadow:0 4px 0 #d8e2ec;transition:transform .1s;padding:9px 8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.35;
+}
+.opt .os{font-size:20px;line-height:1.3;font-weight:800}
+.opt .on{font-size:12.5px;line-height:1.2;font-weight:800;color:#93a0ad;letter-spacing:0}
+.opt:active{transform:translateY(3px);box-shadow:0 1px 0 #d8e2ec}
+.opt.good{border-color:var(--green);background:#eafaf2;color:var(--green);box-shadow:0 4px 0 #bfe8d3}
+.opt.good .on{color:#22a06b}
+.opt.bad{border-color:#f1c9c4;background:#fdf2f1;color:#c6a5a1;box-shadow:none}
+.opt.bad .on{color:#c6a5a1}
+.opt[disabled]{cursor:not-allowed}
+.opt[disabled]:not(.good):not(.bad){opacity:.45;box-shadow:none}
+.opt.del{font-size:15px;color:var(--red)}
+
+.opttip{text-align:center;font-size:15px;color:#93a0ad;margin-top:10px;font-weight:700}
+
+.skipbar{text-align:center;margin-top:14px}
+.skipbtn{
+  display:inline-block;border:2px dashed #c9d3de;border-radius:14px;background:#fbfcfe;
+  padding:8px 16px;font-size:14.5px;font-weight:800;color:#93a0ad;cursor:pointer;
+  font-family:inherit;line-height:1.4;
+}
+.skipbtn:active{background:#f1f5f9;color:#6b7785}
+.skiphint{font-size:12.5px;color:#b3bcc7;font-weight:700;margin-top:6px}
+.nextbtn{
+  display:block;width:100%;margin-top:12px;border:none;border-radius:15px;
+  background:#1f6fb2;color:#fff;font-family:inherit;font-size:16.5px;font-weight:800;
+  padding:12px 0;cursor:pointer;box-shadow:0 4px 0 #175a91;
+}
+.nextbtn:active{transform:translateY(2px);box-shadow:0 2px 0 #175a91}
+
+.fb{border-radius:18px;padding:13px 14px;font-size:16.5px;line-height:1.65;font-weight:700;margin-top:14px}
+.fb.ok{background:#eafaf2;color:#16794f;border:2px solid #bfe8d3}
+.fb.no{background:#fdf2f1;color:#b02b1e;border:2px solid #f1c9c4}
+.fb.skip{background:#fff8e6;color:#a97214;border:2px solid #f2ddb0}
+.fb.skip .row b{color:#a97214}
+.fb .row{display:block;margin-top:7px;font-weight:600;font-size:15.5px;color:#4a5560;line-height:1.7}
+.fb .row b{color:#b02b1e}
+.fb.ok .row b{color:#16794f}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+.center{text-align:center;padding:26px 16px}
+.big{font-size:29px;font-weight:900;margin:8px 0}
+.emo{font-size:64px;line-height:1}
+.stat{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:16px 0}
+.stat div{background:var(--soft);border-radius:14px;padding:9px 13px;font-size:15px;font-weight:700}
+.btn{
+  border:0;border-radius:22px;padding:15px 30px;font-size:19.5px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,#3aa0ff,#1f6fb2);cursor:pointer;box-shadow:0 7px 0 #14548a;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 3px 0 #14548a}
+.pop{animation:pop .5s}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+
+.wronglist{text-align:left}
+.wronglist li{background:#fff8f7;border-left:7px solid #eeb0a8;border-radius:12px;padding:10px 12px;margin-bottom:11px;font-family:var(--qfont);font-size:17px;line-height:1.85}
+.wronglist b{color:#b02b1e}
+.wsent{background:#fff;border:2px solid #f3e0dd;border-radius:11px;padding:9px 10px;
+  font-family:var(--qfont);font-size:20px;line-height:2.05;margin-bottom:7px;text-align:left}
+.wrow{margin-top:5px;font-size:15.5px;line-height:1.8;color:#4a5560;font-weight:600}
+.fly{position:fixed;top:-40px;font-size:30px;pointer-events:none;animation:fall 1.6s linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ====================== 题库（由 _gen_bingju.py 注入，全部取自真实资料） ====================== */
+const BANK = {"1": [{"t": "罗老师{0}回家了。", "src": "真题卷·错别字", "fixes": [{"seg": "以今", "type": "cuo", "opts": [["已经", "已经"], ["以经", "以经"], ["已今", "已今"]], "ans": 0, "why": "“以今”是错别字，应写成“已经”（“以”应为“已”，“今”应为“经”）。", "bad": {"以经": "“以”写错了，应为“已”。", "已今": "“今”写错了，应为“经”。"}}], "_corrected": "罗老师已经回家了。"}, {"t": "小明回到家就开始{0}。", "src": "真题卷·错别字", "fixes": [{"seg": "做业", "type": "cuo", "opts": [["作业", "作业"], ["作习", "作习"], ["学业", "学业"]], "ans": 0, "why": "“做业”是错别字，应写成“作业”（“做”应为“作”）。", "bad": {"作习": "“作习”不是词语。", "学业": "意思变了，原句说的是写作业。"}}], "_corrected": "小明回到家就开始作业。"}, {"t": "白云{0}棉花糖。", "src": "真题卷·错别字", "fixes": [{"seg": "好象", "type": "cuo", "opts": [["好像", "好像"], ["好相", "好相"], ["好象", "好象"]], "ans": 0, "why": "“好象”是错别字，应写成“好像”（“象”应为“像”）。", "bad": {"好相": "“相”写错了，应为“像”。", "好象": "“象”应为“像”。"}}], "_corrected": "白云好像棉花糖。"}, {"t": "妈妈看到干净的房子，觉{0}很欣慰。", "src": "真题卷·错别字", "fixes": [{"seg": "的", "type": "cuo", "opts": [["得", "得"], ["地", "地"], ["的", "的"]], "ans": 0, "why": "“觉的”是错别字，应写成“觉得”（补充说明状态用“得”）。", "bad": {"地": "这里表示补充说明，用“得”不用“地”。", "的": "“的”应为“得”。"}}], "_corrected": "妈妈看到干净的房子，觉得很欣慰。"}, {"t": "我们从小就要养成爱清洁、{0}。", "src": "真题卷·成分残缺", "fixes": [{"seg": "讲卫生", "type": "can", "opts": [["讲卫生的习惯", "讲卫生的习惯"], ["讲卫生的方法", "讲卫生的方法"], ["讲卫生的环境", "讲卫生的环境"]], "ans": 0, "why": "这句话不完整，后面缺少宾语，应在“讲卫生”后加上“的习惯”。", "bad": {"讲卫生的方法": "没有补足缺少的“习惯”，句子仍不完整。", "讲卫生的环境": "改变了原意，且仍缺宾语。"}}], "_corrected": "我们从小就要养成爱清洁、讲卫生的习惯。"}, {"t": "老师在办公室认真地{0}。", "src": "真题卷·成分残缺", "fixes": [{"seg": "批改", "type": "can", "opts": [["批改作业", "批改作业"], ["批改吃饭", "批改吃饭"], ["批改睡觉", "批改睡觉"]], "ans": 0, "why": "这句话不完整，“批改”后面缺少宾语，应加上“作业”。", "bad": {"批改吃饭": "动作不合理，没补足缺少的宾语。", "批改睡觉": "动作不合理，没补足缺少的宾语。"}}], "_corrected": "老师在办公室认真地批改作业。"}, {"t": "我家里养了很多小动物，有乌龟{0}兔子。", "src": "真题卷·归类不当", "fixes": [{"seg": "、玫瑰花和", "type": "gui", "opts": [["删去“玫瑰花”", "、"], ["换成“百合花”", "、百合花和"], ["换成“菊花”", "、菊花和"]], "ans": 0, "why": "“玫瑰花”是植物，不是小动物，不能和乌龟、兔子并列，应删去。", "bad": {"换成“百合花”": "仍是植物，不是小动物。", "换成“菊花”": "仍是植物，不是小动物。"}}], "_corrected": "我家里养了很多小动物，有乌龟、兔子。"}, {"t": "爸爸去超市买了好几样水果，有香蕉、{0}草莓。", "src": "真题卷·归类不当", "fixes": [{"seg": "芹菜、", "type": "gui", "opts": [["删去“芹菜”", ""], ["换成“萝卜”", "萝卜、"], ["换成“青菜”", "青菜、"]], "ans": 0, "why": "“芹菜”是蔬菜，不是水果，不能和香蕉、苹果、草莓并列，应删去。", "bad": {"换成“萝卜”": "萝卜是蔬菜，不是水果。", "换成“青菜”": "青菜是蔬菜，不是水果。"}}], "_corrected": "爸爸去超市买了好几样水果，有香蕉、（删去芹菜、）草莓。"}], "2": [{"t": "晚会上，我能{0}同学们的笑脸和美妙的歌声。", "src": "真题卷·搭配不当", "fixes": [{"seg": "看到", "type": "da", "opts": [["看到笑脸，听到", "看到同学们的笑脸，听到"], ["听见", "听见"], ["望着", "望着"]], "ans": 0, "why": "“看到”和“歌声”搭配不当，应改为“听到歌声”（“看到笑脸，听到歌声”）。", "bad": {"听见": "“听见”仍不能和“笑脸”搭配。", "望着": "“望着”不能和“歌声”搭配。"}}], "_corrected": "晚会上，我能看到同学们的笑脸，听到同学们的笑脸和美妙的歌声。"}, {"t": "因为姐姐很喜欢花，{0}养了许多美丽的鲜花。", "src": "真题卷·搭配不当", "fixes": [{"seg": "而且", "type": "da", "opts": [["所以", "所以"], ["但是", "但是"], ["并且", "并且"]], "ans": 0, "why": "“因为”和“而且”搭配不当，应改为“所以”（因为……所以……）。", "bad": {"但是": "“因为……但是”不搭配。", "并且": "“因为……并且”不搭配。"}}], "_corrected": "因为姐姐很喜欢花，所以养了许多美丽的鲜花。"}, {"t": "当我递上了茶杯，妈妈脸上露出了欣慰的{0}。", "src": "真题卷·搭配不当", "fixes": [{"seg": "心情", "type": "da", "opts": [["笑容", "笑容"], ["情感", "情感"], ["感情", "感情"]], "ans": 0, "why": "“露出”和“心情”搭配不当，应改为“笑容”。", "bad": {"情感": "“露出情感”不搭配。", "感情": "“露出感情”不搭配。"}}], "_corrected": "当我递上了茶杯，妈妈脸上露出了欣慰的笑容。"}, {"t": "哥哥最喜欢打篮球和{0}。", "src": "真题卷·搭配不当", "fixes": [{"seg": "足球", "type": "da", "opts": [["踢足球", "踢足球"], ["打足球", "打足球"], ["看足球", "看足球"]], "ans": 0, "why": "“打”和“足球”搭配不当，足球要用“踢”。", "bad": {"打足球": "“打足球”搭配不当。", "看足球": "没改对，足球要用“踢”。"}}], "_corrected": "哥哥最喜欢打篮球和踢足球。"}, {"t": "我们要养成边阅读边圈划的{0}。", "src": "真题卷·搭配不当", "fixes": [{"seg": "好方法", "type": "da", "opts": [["好习惯", "好习惯"], ["好传统", "好传统"], ["好风尚", "好风尚"]], "ans": 0, "why": "“养成”和“好方法”搭配不当，应改为“好习惯”。", "bad": {"好传统": "“养成好传统”不搭配。", "好风尚": "“养成好风尚”不搭配。"}}], "_corrected": "我们要养成边阅读边圈划的好习惯。"}, {"t": "虽然天气不好，{0}我们还是按时到校了。", "src": "真题卷·搭配不当", "fixes": [{"seg": "所以", "type": "da", "opts": [["但是", "但是"], ["因此", "因此"], ["所以", "所以"]], "ans": 0, "why": "“虽然”和“所以”搭配不当，应改为“但是”（虽然……但是……）。", "bad": {"因此": "“虽然……因此”不搭配。", "所以": "“虽然……所以”不搭配。"}}], "_corrected": "虽然天气不好，但是我们还是按时到校了。"}, {"t": "我们一家人{0}打算去超市购物。", "src": "真题卷·重复累赘", "fixes": [{"seg": "和妈妈", "type": "chong", "opts": [["删去“和妈妈”", ""], ["跟妈妈", "跟妈妈"], ["与妈妈", "与妈妈"]], "ans": 0, "why": "“一家人”已经包括“妈妈”，语意重复，应删去“和妈妈”。", "bad": {"跟妈妈": "“一家人”仍包含“妈妈”，还是重复。", "与妈妈": "“一家人”仍包含“妈妈”，还是重复。"}}], "_corrected": "我们一家人（删去和妈妈）打算去超市购物。"}, {"t": "阅读分享会上，我总是首先{0}发言。", "src": "真题卷·重复累赘", "fixes": [{"seg": "第一个", "type": "chong", "opts": [["删去“第一个”", ""], ["第二个", "第二个"], ["最先", "最先"]], "ans": 0, "why": "“首先”和“第一个”意思重复，删去其中一个即可。", "bad": {"第二个": "没删掉重复的意思。", "最先": "仍与“首先”重复。"}}], "_corrected": "阅读分享会上，我总是首先（删去第一个）发言。"}, {"t": "大约有十个{0}的同学没有带毛笔。", "src": "真题卷·重复累赘", "fixes": [{"seg": "左右", "type": "chong", "opts": [["删去“左右”", ""], ["大概", "大概"], ["上下", "上下"]], "ans": 0, "why": "“大约”和“左右”意思重复，删去其中一个。", "bad": {"大概": "仍与“大约”重复。", "上下": "没删掉重复。"}}], "_corrected": "大约有十个（删去左右）的同学没有带毛笔。"}, {"t": "《题西林壁》的作者是苏轼{0}。", "src": "真题卷·重复累赘", "fixes": [{"seg": "写的", "type": "chong", "opts": [["删去“写的”", ""], ["编的", "编的"], ["作的", "作的"]], "ans": 0, "why": "“作者”和“写的”意思重复，删去“写的”（或删“的作者”）。", "bad": {"编的": "没删重复，还改了意思。", "作的": "没删重复。"}}], "_corrected": "《题西林壁》的作者是苏轼（删去写的）。"}], "3": [{"t": "花店里出售着{0}的红玫瑰。", "src": "真题卷·前后矛盾", "fixes": [{"seg": "各种颜色", "type": "mao", "opts": [["删去“各种颜色的”", ""], ["许多", "许多"], ["鲜艳", "鲜艳"]], "ans": 0, "why": "“各种颜色”和“红”前后矛盾（红只是一种颜色），应删去“各种颜色的”。", "bad": {"许多": "仍与“红”矛盾。", "鲜艳": "没解决矛盾。"}}], "_corrected": "花店里出售着（删去各种颜色）的红玫瑰。"}, {"t": "今天{0}下了一天的雨。", "src": "真题卷·前后矛盾", "fixes": [{"seg": "中午", "type": "mao", "opts": [["删去“中午”", ""], ["早晨", "早晨"], ["傍晚", "傍晚"]], "ans": 0, "why": "“中午”和“一天”前后矛盾，删去“中午”（或删“一天”）。", "bad": {"早晨": "删错了位置，仍矛盾。", "傍晚": "仍矛盾。"}}], "_corrected": "今天（删去中午）下了一天的雨。"}, {"t": "火药是我国的{0}。", "src": "真题卷·前后矛盾", "fixes": [{"seg": "四大发明", "type": "mao", "opts": [["四大发明之一", "四大发明之一"], ["三个发明", "三个发明"], ["重要发明", "重要发明"]], "ans": 0, "why": "火药只是四大发明中的一项，应在“四大发明”后加上“之一”。", "bad": {"三个发明": "改变了原意。", "重要发明": "没加“之一”，仍前后矛盾。"}}], "_corrected": "火药是我国的四大发明之一。"}, {"t": "爷爷奶奶{0}每天到公园散步。", "src": "真题卷·前后矛盾", "fixes": [{"seg": "偶尔", "type": "mao", "opts": [["删去“偶尔”", ""], ["经常", "经常"], ["总是", "总是"]], "ans": 0, "why": "“偶尔”和“每天”前后矛盾，删去“偶尔”（或删“每天”）。", "bad": {"经常": "仍与“每天”重复且没解决矛盾。", "总是": "仍矛盾。"}}], "_corrected": "爷爷奶奶（删去偶尔）每天到公园散步。"}, {"t": "一进公园，我就看到了美丽的鲜花和{0}。", "src": "真题卷·搭配不当", "fixes": [{"seg": "淡淡的花香", "type": "da", "opts": [["闻到了淡淡的花香", "闻到了淡淡的花香"], ["喜欢淡淡的花香", "喜欢淡淡的花香"], ["画出了淡淡的花香", "画出了淡淡的花香"]], "ans": 0, "why": "“看到”和“花香”搭配不当，应改成“闻到花香”。", "bad": {"喜欢淡淡的花香": "“喜欢花香”不能修正“看到花香”的搭配错误。", "画出了淡淡的花香": "“画出花香”不合理。"}}], "_corrected": "一进公园，我就看到了美丽的鲜花和闻到了淡淡的花香。"}, {"t": "虽然今天下雨，{0}运动会取消了。", "src": "真题卷·搭配不当", "fixes": [{"seg": "所以", "type": "da", "opts": [["但是", "但是"], ["所以", "所以"], ["而且", "而且"]], "ans": 0, "why": "“虽然”和“所以”搭配不当，应改为“但是”（虽然……但是……）。", "bad": {"所以": "“虽然……所以”不搭配。", "而且": "“虽然……而且”不搭配。"}}], "_corrected": "虽然今天下雨，但是运动会取消了。"}, {"t": "上课铃响了，小红准备好了钢笔、尺子、{0}橡皮。", "src": "真题卷·归类不当", "fixes": [{"seg": "文具、", "type": "gui", "opts": [["删去“文具”", ""], ["课本、", "课本、"], ["笔记、", "笔记、"]], "ans": 0, "why": "“文具”已经包含钢笔、尺子、橡皮，不应再并列，应删去“文具”。", "bad": {"课本、": "没解决归类不当。", "笔记、": "没解决归类不当。"}}], "_corrected": "上课铃响了，小红准备好了钢笔、尺子、（删去文具、）橡皮。"}, {"t": "天气冷了，我穿着棉袄和{0}。", "src": "真题卷·搭配不当", "fixes": [{"seg": "厚厚的围巾", "type": "da", "opts": [["戴着厚厚的围巾", "戴着厚厚的围巾"], ["系着厚厚的围巾", "系着厚厚的围巾"], ["挂着厚厚的围巾", "挂着厚厚的围巾"]], "ans": 0, "why": "“穿着”和“围巾”搭配不当，围巾要用“戴”。", "bad": {"系着厚厚的围巾": "“系围巾”不是标准搭配。", "挂着厚厚的围巾": "“挂围巾”不合理。"}}], "_corrected": "天气冷了，我穿着棉袄和戴着厚厚的围巾。"}, {"t": "他{0}等了一个小时。", "src": "真题卷·前后矛盾", "fixes": [{"seg": "差不多整整", "type": "mao", "opts": [["删去“差不多”", ""], ["大概", "大概"], ["足足", "足足"]], "ans": 0, "why": "“差不多”和“整整”前后矛盾，删去其中一个。", "bad": {"大概": "仍矛盾。", "足足": "仍矛盾。"}}], "_corrected": "他（删去差不多整整）等了一个小时。"}, {"t": "我们要养成认真{0}。", "src": "真题卷·成分残缺", "fixes": [{"seg": "读书", "type": "can", "opts": [["读书的习惯", "读书的习惯"], ["读书的方法", "读书的方法"], ["读书的环境", "读书的环境"]], "ans": 0, "why": "这句话不完整，缺宾语，应在“读书”后加上“的习惯”。", "bad": {"读书的方法": "没补足缺少的“习惯”之意。", "读书的环境": "改变了原意。"}}], "_corrected": "我们要养成认真读书的习惯。"}], "4": [{"t": "小明{0}也不迟到，他穿着一件上衣和{1}。", "src": "真题卷·综合", "fixes": [{"seg": "在", "type": "cuo", "opts": [["再", "再"], ["在", "在"], ["才", "才"]], "ans": 0, "why": "“在”是错别字，应写成“再”（“再也不”）。", "bad": {"在": "“在”写错了，应为“再”。", "才": "意思不对。"}}, {"seg": "一顶帽子", "type": "da", "opts": [["戴着一顶帽子", "戴着一顶帽子"], ["系着一顶帽子", "系着一顶帽子"], ["挂着一顶帽子", "挂着一顶帽子"]], "ans": 0, "why": "“穿着”和“帽子”搭配不当，帽子要用“戴”。", "bad": {"系着一顶帽子": "“系帽子”不标准。", "挂着一顶帽子": "“挂帽子”不合理。"}}], "_corrected": "小明再也不迟到，他穿着一件上衣和戴着一顶帽子。"}, {"t": "红头向周围看了看，{0}躲在一个草堆里不作声。", "src": "教材《在牛肚子里旅行》·错别字", "fixes": [{"seg": "稍稍", "type": "cuo", "opts": [["悄悄", "悄悄"], ["慢慢", "慢慢"], ["轻轻", "轻轻"]], "ans": 0, "why": "“稍稍”是错别字，课文原词是“悄悄”（不出声地）。", "bad": {"慢慢": "意思变了。", "轻轻": "“轻轻躲”不搭配。"}}], "_corrected": "红头向周围看了看，悄悄躲在一个草堆里不作声。"}, {"t": "菜园里种了很多蔬菜，有土豆、黄瓜、{0}和西红柿。", "src": "课本原句·园地三·归类不当", "fixes": [{"seg": "西瓜", "type": "gui", "opts": [["删去“西瓜”", ""], ["换成“冬瓜”", "冬瓜"], ["换成“南瓜”", "南瓜"]], "ans": 0, "why": "“西瓜”是水果不是蔬菜，不能和土豆、黄瓜、西红柿并列，应删去。", "bad": {"换成“冬瓜”": "冬瓜仍是蔬菜，没改对。", "换成“南瓜”": "南瓜仍是蔬菜，没改对。"}}], "_corrected": "菜园里种了很多蔬菜，有土豆、黄瓜、（删去西瓜）和西红柿。"}, {"t": "全班同学{0}到了，只有小明没来。", "src": "真题卷·前后矛盾", "fixes": [{"seg": "都", "type": "mao", "opts": [["删去“都”", ""], ["大概", "大概"], ["几乎", "几乎"]], "ans": 0, "why": "“都到了”和“只有小明没来”前后矛盾，删去“都”（或删“只有小明没来”）。", "bad": {"大概": "没解决矛盾。", "几乎": "仍矛盾。"}}], "_corrected": "全班同学（删去都）到了，只有小明没来。"}, {"t": "教室里传来了悠扬的歌声和{0}。", "src": "真题卷·搭配不当", "fixes": [{"seg": "美丽的舞蹈", "type": "da", "opts": [["看到了美丽的舞蹈", "看到了美丽的舞蹈"], ["响起了美丽的舞蹈", "响起了美丽的舞蹈"], ["跳起了美丽的舞蹈", "跳起了美丽的舞蹈"]], "ans": 0, "why": "“传来”和“舞蹈”搭配不当，应改为“看到舞蹈”。", "bad": {"响起了美丽的舞蹈": "“响起舞蹈”不搭配。", "跳起了美丽的舞蹈": "“跳起舞蹈”不能和“传来歌声”并列修正。"}}], "_corrected": "教室里传来了悠扬的歌声和看到了美丽的舞蹈。"}, {"t": "弟弟情不自禁{0}：“真棒！”", "src": "真题卷·重复累赘", "fixes": [{"seg": "地地说", "type": "chong", "opts": [["地说", "地说"], ["地说地", "地说地"], ["的说", "的说"]], "ans": 0, "why": "“地地”重复，多了一个“地”，应删去一个（或“情不自禁”后直接接“说”）。", "bad": {"地说地": "仍有重复。", "的说": "“的地说”不对。"}}], "_corrected": "弟弟情不自禁地说：“真棒！”"}, {"t": "果园里有苹果、梨、香蕉和{0}。", "src": "真题卷·归类不当", "fixes": [{"seg": "黄瓜", "type": "gui", "opts": [["删去“黄瓜”", ""], ["萝卜", "萝卜"], ["茄子", "茄子"]], "ans": 0, "why": "“黄瓜”是蔬菜不是水果，应删去。", "bad": {"萝卜": "萝卜是蔬菜，不是水果。", "茄子": "茄子是蔬菜，不是水果。"}}], "_corrected": "果园里有苹果、梨、香蕉和（删去黄瓜）。"}, {"t": "秋天到了，树叶纷纷从树上{0}下来。", "src": "真题卷·错别字", "fixes": [{"seg": "漂", "type": "cuo", "opts": [["飘", "飘"], ["漂", "漂"], ["落", "落"]], "ans": 0, "why": "“漂”是错别字，树叶落下应用“飘”（“飘下来”）。", "bad": {"漂": "“漂”写错了，应为“飘”。", "落": "“落下来”不如“飘下来”贴合语境，且未修正错别字。"}}], "_corrected": "秋天到了，树叶纷纷从树上飘下来。"}]};
+
+/* ====================== 常量 ====================== */
+const PER_LEVEL = 5;
+const LAST_LEVEL = 4;
+const TYPES = [['cuo','错别字'],['can','成分残缺'],['da','搭配不当'],['gui','归类不当'],['chong','重复累赘'],['mao','前后矛盾']];
+function typeName(t){ const x = TYPES.find(y => y[0]===t); return x ? x[1] : '病句'; }
+
+const LEVELS = [
+  {n:1, name:'第一关 · 一星', stars:'⭐',    emoji:'🌱', color:'#22a06b',
+   tip:'错别字 / 成分残缺 / 归类不当 · 明显、短句 · 错误处已波浪线标出'},
+  {n:2, name:'第二关 · 二星', stars:'⭐⭐',   emoji:'🚀', color:'#1f6fb2',
+   tip:'搭配不当 / 重复累赘 · 句子变长 · 看清楚谁和谁搭配'},
+  {n:3, name:'第三关 · 三星', stars:'⭐⭐⭐',  emoji:'👑', color:'#ef8f1e',
+   tip:'前后矛盾 / 教材风长句 / 归类 / 关联词'},
+  {n:4, name:'第四关 · 四星', stars:'⭐⭐⭐⭐', emoji:'🏆', color:'#a8549a',
+   tip:'★全能关：六类混合 · 含双错长句 · 综合改'},
+  {n:5, name:'回炉关 · 再练一遍', stars:'🔁', emoji:'🔥', color:'#c2622f',
+   tip:'把刚才跳过的句子重新做一遍 —— 这次不看答案'}
+];
+
+const SONG = '一读句子二找病，增、删、调、换改干净；<br>改完还要读一遍，原意不能变一变。';
+const SONG2 = '错字圈一圈，缺的补一补；<br>不搭换一换，不是一类删；<br>重复删一遍，矛盾改一处。';
+
+/* ====================== 工具 ====================== */
+const app = document.getElementById('app');
+let muted = false, audioCtx = null;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; };
+
+function beep(ok){
+  if (muted) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination); o.type='sine';
+    if (ok){ o.frequency.setValueAtTime(660,t); o.frequency.setValueAtTime(920,t+0.11); }
+    else  { o.frequency.setValueAtTime(320,t); o.frequency.setValueAtTime(210,t+0.14); }
+    g.gain.setValueAtTime(0.0001,t); g.gain.setValueAtTime(0.15,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.36);
+    o.start(t); o.stop(t+0.4);
+  }catch(e){}
+}
+function flyStars(n){
+  for (let i=0;i<n;i++){
+    const s=document.createElement('div'); s.className='fly'; s.textContent='⭐';
+    s.style.left=(Math.random()*88+6)+'vw'; s.style.animationDelay=(Math.random()*0.7)+'s';
+    document.body.appendChild(s); setTimeout(()=>s.remove(),2500);
+  }
+}
+function splitQ(t){
+  const out=[]; const re=/\{([0-9])\}/g; let last=0,m;
+  while((m=re.exec(t))!==null){
+    if(m.index>last) out.push({type:'text',v:t.slice(last,m.index)});
+    out.push({type:'blank',i:+m[1]}); last=m.index+m[0].length;
+  }
+  if(last<t.length) out.push({type:'text',v:t.slice(last)});
+  return out;
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const CN_NUM = '①②③④⑤⑥⑦⑧';
+const NO_HEAD = '。，、；：？！）］｝〉》」』】%‰℃';
+
+/* 题干渲染（逐字；错误处橙色波浪线；改对后绿色；删除处绿框“（删去）”） */
+function renderSentence(q, answers, bi, markBi){
+  const items=[];
+  splitQ(q.t).forEach(sg=>{
+    if(sg.type==='blank'){
+      const i=sg.i; const a = answers ? answers[i] : null;
+      if(a){
+        if(a.deleted) items.push({blank:true,c:'',h:'<span class="delmark">（删去“'+esc(q.fixes[i].seg)+'”）</span>'});
+        else items.push({blank:true,c:'',h:'<span class="fixok">'+esc(a.f)+'</span>'});
+        return;
+      }
+      let cls='err';
+      if(bi===i) cls+=' active';
+      if(markBi===i) cls+=' mark';
+      items.push({blank:true,c:'',h:'<span class="'+cls+'">'+esc(q.fixes[i].seg)+'</span>'});
+      return;
+    }
+    for(const ch of sg.v) items.push({blank:false,c:ch,h:esc(ch)});
+  });
+  const n=items.length, same=new Array(n).fill(false);
+  for(let k=0;k<n;k++){
+    if(k>0 && (items[k].blank || NO_HEAD.indexOf(items[k].c)>=0)) same[k-1]=true;
+  }
+  let html='',buf='',cnt=0;
+  for(let k=0;k<n;k++){
+    buf+=items[k].h; cnt++;
+    if(k+1<n && same[k]) continue;
+    html += (cnt>1)?'<span class="glue">'+buf+'</span>':buf;
+    buf=''; cnt=0;
+  }
+  return html;
+}
+function blankCount(q){ return splitQ(q.t).filter(x=>x.type==='blank').length; }
+/* 把某句所有空按正确选项填好（用于跳过/回顾显示） */
+function correctAnswers(q){
+  const a=[];
+  for(let i=0;i<q.fixes.length;i++){
+    const f=q.fixes[i].opts[q.fixes[i].ans][1];
+    a[i]={f:f, deleted:(f==='')};
+  }
+  return a;
+}
+function rulesHTML(hot){
+  const R=[
+    ['cuo','错别字','圈出错别字，写上正确的字'],
+    ['can','成分残缺','读着缺半句，补上缺的字或词'],
+    ['da','搭配不当','谁和谁不搭，换一个词'],
+    ['gui','归类不当','不是一类的，请出去'],
+    ['chong','重复累赘','一个意思说两遍，删一遍'],
+    ['mao','前后矛盾','前面后面对着干，改一处']
+  ];
+  return '<div class="rules">'+R.map(r=>
+    '<div class="rc'+(hot===r[0]?' hot':'')+'" data-p="'+r[0]+'">'
+    +'<span class="tag '+r[0]+'">'+r[1]+'</span>'
+    +'<span class="ar">→ '+r[2]+'</span></div>').join('')+'</div>';
+}
+
+/* ====================== 出题：每关每类病句各至少 1 题 ====================== */
+let lastIds=[];
+function pick(level){
+  const pool = BANK[level].map((q,idx)=>{ const o={}; for(const k in q) o[k]=q[k]; o.lv=level; o.id=level+'-'+idx; return o; });
+  const fresh = shuffle(pool.filter(q=>lastIds.indexOf(q.id)<0));
+  const rest  = shuffle(pool.filter(q=>lastIds.indexOf(q.id)>=0));
+  const picked=[];
+  const types=[...new Set(fresh.map(q=>q.fixes[0].type))];
+  types.forEach(tp=>{ const one=fresh.filter(q=>q.fixes[0].type===tp)[0]; if(one&&picked.indexOf(one)<0) picked.push(one); });
+  fresh.forEach(q=>{ if(picked.length<PER_LEVEL && picked.indexOf(q)<0) picked.push(q); });
+  rest.forEach(q=>{ if(picked.length<PER_LEVEL && picked.indexOf(q)<0) picked.push(q); });
+  return shuffle(picked).slice(0,PER_LEVEL);
+}
+
+/* ====================== 状态 ====================== */
+let S=null;
+function newGame(){
+  if(S && S.round && S.round.length) lastIds = S.round.slice();
+  S={ level:1, queue:[], qi:0, bi:0, answers:[], wrong:0, wrongLog:[], skipLog:[], round:[],
+      skipping:false, reviewSee:0, start:Date.now(), stage:'intro' };
+  S.queue=pick(1); S.round=S.queue.map(q=>q.id); render();
+}
+
+/* ====================== 渲染 ====================== */
+function render(){
+  if(S.stage==='intro'){ renderIntro(); return; }
+  const L=LEVELS[S.level-1]; const q=S.queue[S.qi]; const n=q.fixes.length;
+  const fi=q.fixes[S.bi]; S.hot=fi.type; const total=S.queue.length;
+  const isL4 = (S.stage==='review') ? (q.lv>=4) : (S.level>=4);
+
+  let html='<div class="topbar"><div class="badge">'
+    +'<span class="lv">'+L.name+'</span><span class="st">'+L.stars+'</span>'
+    +'<span class="pg">'+L.emoji+' 第 '+(S.qi+1)+'/'+total+'</span></div>'
+    +'<button class="iconbtn" id="mute">'+(muted?'🔇':'🔊')+'</button></div>';
+
+  html += rulesHTML(S.hot);
+
+  const tip='这一句有 <b>'+n+'</b> 处病，<b>全部</b>都要改对。'
+    +'<br><span style="color:#8b95a1">橙框里的 ①②③ 是现在要改第几处；波浪线＝有错的地方。</span>';
+
+  html+='<div class="card"><div class="qtip">'+tip+'</div><div class="dots">';
+  for(let i=0;i<total;i++) html+='<span class="dot '+(i<S.qi?'ok':(i===S.qi?'now':''))+'"></span>';
+  html+='</div><div class="sentence" id="sen">'+renderSentence(q,S.answers,S.bi,-1)+'</div><div class="opts" id="opts">';
+  // ★洗牌：只在“显示顺序”上打乱，按钮的 data-idx 仍指向原始选项索引（正确答案键 fi.ans 不变）
+  //   这样正确答案每次出现位置随机，孩子不能靠“永远点第一个”蒙对。
+  const optOrder = shuffle(fi.opts.map((_, i) => i));
+  optOrder.forEach((idx)=>{
+    const o = fi.opts[idx];
+    const bad = S.wrongOpts && S.wrongOpts.indexOf(idx)>-1;
+    const isDel = (o[1]==='');
+    html+='<button class="opt'+(bad?' bad':'')+(isDel?' del':'')+'" data-idx="'+idx+'"'+(bad?' disabled':'')+'>'
+      +'<span class="os">'+esc(o[0])+'</span>'
+      +'<span class="on">'+(isDel?'删除':'改法')+'</span></button>';
+  });
+  const skipTxt=(S.stage==='review')?'👀 再看一遍答案':'⏭ 跳过这句，直接看答案';
+  const skipHint=(S.stage==='review')?'别急，想不出来就看一眼，结束页还会再列出来':'不会做也没关系，先看看正确的改法，最后还有一关「🔁 回炉关」让你不看答案再做一遍';
+  html+='</div><div class="opttip">给第 '+(S.bi+1)+' 处病选改法（共 '+n+' 处）</div>'
+    +'<div id="fb"></div>'
+    +'<div class="skipbar"><button class="skipbtn" id="skipbtn">'+skipTxt+'</button>'
+    +'<div class="skiphint">'+skipHint+'</div></div></div>';
+
+  app.innerHTML=html;
+  document.getElementById('mute').onclick=()=>{ muted=!muted; render(); };
+  document.getElementById('skipbtn').onclick=skipQuestion;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.onclick=()=>choose(+b.dataset.idx,b); });
+}
+
+/* ====================== ⏭ 跳过 ====================== */
+function skipQuestion(){
+  if(S.skipping) return;
+  S.skipping=true;
+  const q=S.queue[S.qi];
+  if(S.stage==='review') S.reviewSee=(S.reviewSee||0)+1;
+  else if(!S.skipLog.some(x=>x.id===q.id)) S.skipLog.push({id:q.id,t:q.t,fixes:q.fixes,src:q.src,lv:S.level});
+  const ans=correctAnswers(q); S.answers=ans; S.bi=-1; S.wrongOpts=null; S.hot=null;
+  const sen=document.getElementById('sen');
+  if(sen){ sen.innerHTML=renderSentence(q,ans,-1,-1); }
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.disabled=true; });
+  const tip=document.querySelectorAll('.opttip')[0];
+  if(tip) tip.innerHTML=(S.stage==='review'?'这一句先看答案':'这一句先跳过')+'，正确改法在上面（绿色就是答案）';
+  document.querySelectorAll('.skipbar')[0].style.display='none';
+  Array.prototype.forEach.call(document.querySelectorAll('.rc'),c=>c.classList.remove('hot'));
+
+  let rows='';
+  for(let i=0;i<q.fixes.length;i++){
+    const fx=q.fixes[i]; const good=fx.opts[fx.ans];
+    rows+='<span class="row">第 '+(i+1)+' 处病：'+'<b style="color:#16794f">'+esc(good[0])+'</b>　'+q.fixes[i].why+'</span>';
+  }
+  const fb=document.getElementById('fb');
+  fb.innerHTML='<div class="fb skip">'
+    +(S.stage==='review'?'👀 再看一遍：正确改法在上面':'⏭ 跳过这句，正确改法在上面')
+    +rows
+    +(q.src?'<span class="row">📖 '+esc(q.src)+'</span>':'')
+    +'<button class="nextbtn" id="skipnext">看懂了，下一句 →</button>'
+    +'<span class="row" style="text-align:center;color:#b3bcc7;font-size:14px">不点也没关系，几秒后自己往下走</span></div>';
+  document.getElementById('skipnext').onclick=skipDone;
+  S.skipTimer=setTimeout(skipDone,3800);
+}
+function skipDone(){
+  if(!S.skipping) return;
+  S.skipping=false;
+  if(S.skipTimer){ clearTimeout(S.skipTimer); S.skipTimer=null; }
+  nextQuestion();
+}
+
+/* ====================== 答题 ====================== */
+function choose(idx, btn){
+  const q=S.queue[S.qi]; const n=q.fixes.length; const fi=q.fixes[S.bi];
+  const right=fi.ans; const fb=document.getElementById('fb');
+  if(idx===right){
+    const good=fi.opts[right];
+    S.answers[S.bi]={f:good[1], deleted:(good[1]==='')};
+    S.wrongOpts=null; S.hot=null;
+    Array.prototype.forEach.call(document.querySelectorAll('.rc'),c=>c.classList.remove('hot'));
+    beep(true); btn.classList.add('good');
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.disabled=true; });
+    const cur=S.bi;
+    if(S.bi+1<n){
+      S.bi+=1; S.hot=q.fixes[S.bi].type;
+      Array.prototype.forEach.call(document.querySelectorAll('.rc'),c=>{ if(c.dataset.p===S.hot) c.classList.add('hot'); else c.classList.remove('hot'); });
+      fb.innerHTML='<div class="fb ok">✅ 改对啦！<span class="row">'+esc(good[0])+'　改对了！'+q.fixes[cur].why+'</span>'
+        +'<span class="row">继续改第 '+(S.bi+1)+' 处病。</span></div>';
+      setTimeout(render,700);
+    } else {
+      fb.innerHTML='<div class="fb ok pop">🎉 这一句全部改对！<span class="row">'+q.fixes[cur].why+'</span>'
+        +'<span class="row">马上进入下一句……</span></div>';
+      setTimeout(nextQuestion,1100);
+    }
+  } else {
+    S.wrong+=1;
+    S.wrongOpts=(S.wrongOpts||[]).concat(idx); S.hot=fi.type;
+    S.wrongLog.push({q:q, bi:S.bi, picked:fi.opts[idx][0], ans:fi.opts[right][0], why:fi.why,
+                     bad:(fi.bad&&fi.bad[fi.opts[idx][0]])||'再读读这句，看哪里不对。', lv:S.level});
+    beep(false);
+    btn.classList.add('bad','shake'); btn.disabled=true;
+    const sen=document.getElementById('sen'); if(sen) sen.classList.add('shake');
+    Array.prototype.forEach.call(document.querySelectorAll('.rc'),c=>{ if(c.dataset.p===S.hot) c.classList.add('hot'); else c.classList.remove('hot'); });
+    const tip=document.querySelectorAll('.opttip')[0];
+    if(tip) tip.innerHTML='看清错因，重新给第 '+(S.bi+1)+' 处病选改法';
+    fb.innerHTML='<div class="fb no">❌ 不对，看清下面的话，再选一次'
+      +'<span class="row">你选的是：<b>'+esc(fi.opts[idx][0])+'</b>　不对。</span>'
+      +'<span class="row">为什么不对：<b>'+esc((fi.bad&&fi.bad[fi.opts[idx][0]])||'再读读这句，看哪里不对。')+'</b></span>'
+      +'<span class="row">应该这样改：<b style="color:#16794f">'+esc(fi.opts[right][0])+'</b>　'+esc(fi.why)+'</span></div>';
+  }
+}
+
+function nextQuestion(){
+  S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null;
+  if(S.qi+1<S.queue.length){ S.qi+=1; render(); }
+  else levelClear();
+}
+function levelClear(){
+  const L=LEVELS[S.level-1];
+  beep(true); flyStars(12);
+  const reviewing=(S.stage==='review'); const cnt=S.queue.length;
+  let html='<div class="card center pop"><div class="emo">'+L.emoji+'</div>'
+    +'<div class="big">'+L.stars+' '+L.name+(reviewing?' 完成！':' 通关！')+'</div>';
+  const sk = reviewing ? (S.reviewSee||0) : S.skipLog.filter(x=>x.lv===S.level).length;
+  html += sk
+    ? '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 '+cnt+' 句完成，其中 <b style="color:#a97214">'+sk+' 句</b>是看答案过的。</div>'
+    : '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 '+cnt+' 句全部自己改对，太厉害了！</div>';
+  html += '<div class="stat"><div>📌 '+L.tip+'</div></div>';
+  if(S.level<LAST_LEVEL){
+    const NL=LEVELS[S.level];
+    html += '<div style="font-size:17px;font-weight:800;color:'+NL.color+'">马上进入 '+NL.name+' ……</div>';
+    if(NL.n===4) html += '<div style="margin-top:10px;font-size:15px;font-weight:700;color:#a8549a;line-height:1.8">'
+      +'下一关六类病句<b>混在一起</b>，<br>还有<b>一处多病</b>的长句，全靠你自己改哦！</div>';
+  } else if(!reviewing && S.skipLog.length){
+    html += '<div style="font-size:17px;font-weight:800;color:#c2622f">🔥 别急着走 —— 马上进入「回炉关」！</div>'
+      +'<div style="margin-top:10px;font-size:15px;font-weight:700;color:#5b6672;line-height:1.8">'
+      +'刚才你<b style="color:#a97214">跳过 '+S.skipLog.length+' 句</b>，<br>这一关把它们<b>重新排一遍</b>，<b style="color:#c2622f">不看答案</b>，自己做做看！</div>';
+  }
+  app.innerHTML=html+'</div>';
+  setTimeout(advance,1900);
+}
+function advance(){
+  if(S.level<LAST_LEVEL){
+    S.level+=1; S.qi=0; S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null;
+    S.queue=pick(S.level); S.round=S.round.concat(S.queue.map(q=>q.id)); render();
+  } else if(S.stage!=='review' && S.skipLog.length){ startReview(); }
+  else finish();
+}
+function startReview(){
+  const seen={};
+  S.queue=S.skipLog.filter(x=>{ if(seen[x.id]) return false; seen[x.id]=1; return true; })
+    .map(x=>({t:x.t, fixes:x.fixes, src:x.src, lv:x.lv, id:x.id}));
+  if(!S.queue.length){ finish(); return; }
+  S.stage='review'; S.level=5; S.qi=0; S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null; S.skipping=false; S.reviewSee=0;
+  render();
+}
+
+/* ====================== 结束页 ====================== */
+function finish(){
+  const sec=Math.round((Date.now()-S.start)/1000);
+  const mm=String(Math.floor(sec/60)).padStart(2,'0'), ss=String(sec%60).padStart(2,'0');
+  beep(true); flyStars(28);
+  const seen={};
+  const uniq=S.wrongLog.filter(x=>{ const k=x.q.t+x.bi+x.picked; if(seen[k]) return false; seen[k]=1; return true; });
+  let html='<div class="card center pop"><div class="emo">🏆</div><div class="big">闯关成功！</div>'
+    +'<div style="font-size:17px;font-weight:700;color:#5b6672">修改病句 · 四关全部通关 ⭐⭐⭐⭐'
+    + (S.skipLog.length?'　＋ 🔁 回炉关完成':'')+'</div>'
+    +'<div class="stat"><div>⏱ '+mm+':'+ss+'</div><div>❌ 失误 '+S.wrong+' 次</div><div>📝 改错 '+uniq.length+' 处</div>'
+    + (S.skipLog.length?'<div>⏭ 跳过 '+S.skipLog.length+' 句</div>':'')+'</div>'
+    +'<div style="font-size:16px;font-weight:700;color:#155e8a;line-height:1.9;font-family:var(--qfont)">口诀记住：<br>错字圈一圈，缺的补一补；<br>不搭换一换，不是一类删；<br>重复删一遍，矛盾改一处。</div>'
+    +'<div class="song" style="margin-top:14px">'+SONG2+'</div>';
+  if(uniq.length){
+    html+='<div class="wronglist" style="margin-top:16px"><div style="font-size:16.5px;font-weight:800;margin-bottom:8px">🔍 错题回顾（共 '+uniq.length+' 处）</div><ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    uniq.forEach(x=>{
+      const ans=correctAnswers(x.q); ans[x.bi]=null;
+      html+='<li><div class="wsent">'+renderSentence(x.q,ans,-1,x.bi)+'</div>'
+        +'<div class="wrow"><b style="color:#b02b1e">你刚才选的“'+esc(x.picked)+'”不对</b></div>'
+        +'<div class="wrow" style="color:#b02b1e">为什么不对：'+esc(x.bad)+'</div>'
+        +'<div class="wrow"><b style="color:#16794f">这样改才对：'+esc(x.ans)+'</b>　'+esc(x.why)+'</div></li>';
+    });
+    html+='</ul></div>';
+  }
+  if(S.skipLog.length){
+    html+='<div class="wronglist" style="margin-top:16px;border-color:#f2ddb0;background:#fffdf7"><div style="font-size:16.5px;font-weight:800;margin-bottom:8px;color:#a97214">⏭ 跳过的句子（共 '+S.skipLog.length+' 句 · 已在 🔥 回炉关重做 · 再读一遍）</div><ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    S.skipLog.forEach(x=>{
+      const a=correctAnswers(x);
+      html+='<li><div class="wsent">'+renderSentence(x,a,-1,-1)+'</div></ul>';
+    });
+    html+='</div>';
+  }
+  html+='<div style="margin-top:20px"><button class="btn" id="again">🔄 再来一次（换新题）</button></div>'
+    +'<div style="margin-top:12px;font-size:14.5px;color:#93a0ad;font-weight:700">重新抽 20 句，和上一轮完全不同</div></div>';
+  app.innerHTML=html;
+  document.getElementById('again').onclick=()=>{ beep(true); newGame(); };
+}
+
+/* ====================== 首页 ====================== */
+function renderIntro(){
+  app.innerHTML='<div class="topbar"><div class="badge"><span class="lv">修改病句 · 闯关</span><span class="st">⭐⭐⭐⭐</span>'
+    +'<span class="pg">共 20 句</span></div><button class="iconbtn" id="mute">'+(muted?'🔇':'🔊')+'</button></div>'
+    + rulesHTML(null)
+    +'<div class="std">六大病句类型（看清名字 · 记住改法）'
+    +'<div style="font-size:13px;color:#8b95a1;font-weight:800;line-height:2.1">'
+    + TYPES.map(t=>'<span style="display:inline-block;min-width:64px">'+t[1]+'</span>').join('')
+    +'</div></div>'
+    +'<div class="song">'+SONG+'</div>'
+    +'<div class="card center"><div class="emo">🌱</div><div class="big">四关闯关 · 开始</div>'
+    +'<div style="font-size:16px;color:#5b6672;font-weight:700;line-height:1.85;text-align:left">'
+    +'<b>①</b> 每句有 <b>1～2 处病</b>（错别字 / 缺字 / 不搭 / 不是一类 / 重复 / 矛盾），<b>波浪线</b>标出有错的地方。<br>'
+    +'<b>②</b> 给每处病选<b>正确的改法</b>：是删去、还是换成哪个字/词。<br>'
+    +'<b>③</b> <b>第四关</b>六类病句混在一起，还有一处多病的长句，全靠你自己改。<br>'
+    +'<b>④</b> 选项里只有正确的改法能点亮绿色，选错了会告诉你为什么。<br>'
+    +'<b>⑤</b> 实在不会？点<b>「⏭ 跳过这句」</b>，先看正确改法，<b>不算错</b>。<br>'
+    +'<b>⑥</b> 四关跑完，跳过的句子会攒起来再开一关<b>「🔥 回炉关」</b>——<b>不看答案</b>让你自己做一遍。'
+    +'</div><div style="margin-top:18px"><button class="btn" id="go">开始闯关</button></div></div>';
+  document.getElementById('mute').onclick=()=>{ muted=!muted; renderIntro(); };
+  document.getElementById('go').onclick=()=>{ beep(true); S.stage='play'; render(); };
+}
+
+newGame();
+</script>
+</body>
+</html>

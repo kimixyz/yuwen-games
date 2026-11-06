@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>古诗名言入语境 · 闯关小达人</title>
+<style>
+:root{
+  --ink:#2b3440; --blue:#1f6fb2; --green:#22a06b; --red:#d9483b;
+  --orange:#ef8f1e; --purple:#a8549a; --line:#e4ebf2; --soft:#f5f9fc; --gray:#7b8794;
+  --qfont:"KaiTi","楷体","STKaiti","Kaiti SC","SimSun","宋体","Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",serif;
+  --main:#2f6f8f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Microsoft YaHei","微软雅黑","PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans CJK SC",sans-serif;
+  color:var(--ink);background:linear-gradient(170deg,#e6f4ff 0%,#f2efff 55%,#fff6e5 100%);
+  min-height:100vh;display:flex;justify-content:center;
+  padding:0 10px calc(20px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%;
+}
+#app{width:100%;max-width:520px;padding-top:12px}
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.badge{
+  flex:1;background:#fff;border-radius:18px;padding:9px 13px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;
+}
+.badge .lv{font-size:15.5px;font-weight:800;color:var(--main)}
+.badge .st{font-size:14px;letter-spacing:1px}
+.badge .pg{margin-left:auto;font-size:14px;color:var(--gray);font-weight:700}
+.iconbtn{width:46px;height:46px;flex:0 0 46px;border:0;border-radius:16px;background:#fff;font-size:22px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);cursor:pointer}
+.iconbtn:active{transform:scale(.94)}
+.card{background:#fff;border-radius:22px;padding:16px 15px;box-shadow:0 8px 24px rgba(43,52,64,.10);margin-bottom:12px}
+.rules{display:grid;gap:7px;margin-bottom:12px}
+.rc{
+  background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 11px;
+  display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 9px;
+}
+.rc .tag{font-size:13.5px;font-weight:800;color:#fff;border-radius:9px;padding:3px 8px;white-space:nowrap;font-family:var(--qfont);background:var(--main)}
+.rc .ar{font-size:15px;font-weight:800;color:var(--ink);white-space:nowrap}
+.rc .eg{grid-column:1/-1;font-family:var(--qfont);font-size:15px;color:#8b95a1;line-height:1.6}
+.rc.hot{border-color:var(--orange);background:#fff8ec;box-shadow:0 0 0 3px rgba(239,143,30,.18)}
+.std{
+  background:#fff;border:2px solid #cfe3f5;border-radius:16px;padding:10px 12px;margin-bottom:12px;
+  text-align:center;font-size:14px;font-weight:800;color:#5b6672;line-height:1.9;
+}
+.song{
+  background:#fff7e8;border:2px dashed #f0b96a;border-radius:18px;padding:12px 14px;
+  text-align:center;font-family:var(--qfont);font-size:17px;font-weight:800;color:#a35c11;
+  line-height:1.95;margin-bottom:12px;
+}
+.dots{display:flex;gap:7px;justify-content:center;margin:2px 0 12px}
+.dot{width:13px;height:13px;border-radius:50%;background:#dfe6ee}
+.dot.ok{background:var(--green)}
+.dot.now{background:var(--orange);animation:bounce .8s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.qtip{font-family:var(--qfont);font-size:14.5px;color:var(--gray);font-weight:700;text-align:center;margin-bottom:8px;line-height:1.6}
+.qtip b{color:var(--orange)}
+.sentence{
+  font-family:var(--qfont);
+  font-size:25px;line-height:2;font-weight:600;text-align:left;
+  word-break:normal;line-break:strict;letter-spacing:0;
+}
+.glue{white-space:nowrap}
+.err{
+  text-decoration:underline wavy var(--orange);text-decoration-skip-ink:none;
+  color:#b5611a;font-weight:700;
+}
+.err.active{background:#fff3e0;border-radius:6px;text-decoration-color:#d9483b}
+.err.mark{text-decoration:underline wavy var(--red);color:var(--red);background:#fdeceb;border-radius:6px}
+.tar{color:#b5611a;font-weight:700;background:#fff3e0;border-radius:6px;padding:0 2px}
+.tar.active{outline:2px solid #d9483b}
+.tar.mark{color:var(--red);background:#fdeceb;border-radius:6px}
+.fixok{color:var(--green);font-weight:700;background:#eafaf2;border-radius:6px}
+.fixbad{color:var(--red);font-weight:800;background:#fdeceb;border-radius:6px;text-decoration:line-through}
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+.opt{
+  flex:0 1 calc(33.33% - 8px);min-width:90px;max-width:150px;min-height:104px;height:auto;
+  border:3px solid #d8e2ec;border-radius:18px;background:#fff;
+  font-family:var(--qfont);
+  font-size:20px;font-weight:700;color:var(--ink);cursor:pointer;
+  box-shadow:0 4px 0 #d8e2ec;transition:transform .1s;padding:9px 8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.35;
+}
+.opt .os{font-size:22px;line-height:1.3;font-weight:800}
+.opts.k-choose .opt{flex:0 1 calc(50% - 6px);max-width:238px;min-height:74px}
+.opts.k-choose.n3 .opt{flex:0 1 calc(33.33% - 7px);max-width:168px;min-height:82px}
+.opts.k-choose.n3 .opt .os{font-size:18px}
+.opts.k-choose .opt .os{font-size:19px;line-height:1.45;text-align:center;word-break:break-word}
+/* 长选项（9 字以上，如整句名言）：缩字号，避免出现“三个臭皮匠，顶个诸葛／亮”这种单字掉行 */
+.opts.k-choose.long .opt .os{font-size:16px;line-height:1.4}
+.opts.k-choose.n3.long .opt .os{font-size:15px}
+.opts.k-judge .opt{flex:0 1 calc(50% - 8px);max-width:190px;min-height:88px}
+.opts.k-char .opt,.opts.k-duo .opt{min-height:92px}
+.py{font-family:"Times New Roman",Georgia,"Segoe UI",serif;letter-spacing:.2px}
+.opts.k-duo .opt .os{font-family:"Times New Roman",Georgia,"Segoe UI",serif;font-size:22px;letter-spacing:.3px}
+.opt .on{font-size:12.5px;line-height:1.2;font-weight:800;color:#93a0ad;letter-spacing:0}
+.opt:active{transform:translateY(3px);box-shadow:0 1px 0 #d8e2ec}
+.opt.good{border-color:var(--green);background:#eafaf2;color:var(--green);box-shadow:0 4px 0 #bfe8d3}
+.opt.good .on{color:#22a06b}
+.opt.bad{border-color:#f1c9c4;background:#fdf2f1;color:#c6a5a1;box-shadow:none}
+.opt.bad .on{color:#c6a5a1}
+.opt[disabled]{cursor:not-allowed}
+.opt[disabled]:not(.good):not(.bad){opacity:.45;box-shadow:none}
+.opttip{text-align:center;font-size:15px;color:#93a0ad;margin-top:10px;font-weight:700}
+.opttip:empty{display:none}
+.grouplabel{text-align:center;font-size:13.5px;color:#aab5c0;font-weight:800;margin-top:14px;letter-spacing:1.5px}
+.blank{
+  display:inline-block;min-width:1.72em;height:1.22em;
+  border-bottom:2.5px solid #c8b49a;background:#fbf4e6;border-radius:3px;
+  vertical-align:-0.16em;margin:0 3px;
+}
+.blank.active{border-bottom-color:#d9483b;background:#fff3e0}
+.blank.mark{border-bottom-color:var(--red);background:#fdeceb}
+.blank.inbr{min-width:1.15em}
+.skipbar{text-align:center;margin-top:14px}
+.skipbtn{
+  display:inline-block;border:2px dashed #c9d3de;border-radius:14px;background:#fbfcfe;
+  padding:8px 16px;font-size:14.5px;font-weight:800;color:#93a0ad;cursor:pointer;
+  font-family:inherit;line-height:1.4;
+}
+.skipbtn:active{background:#f1f5f9;color:#6b7785}
+.skiphint{font-size:12.5px;color:#b3bcc7;font-weight:700;margin-top:6px}
+.nextbtn{
+  display:block;width:100%;margin-top:12px;border:none;border-radius:15px;
+  background:var(--main);color:#fff;font-family:inherit;font-size:16.5px;font-weight:800;
+  padding:12px 0;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.18);
+}
+.nextbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.fb{border-radius:18px;padding:13px 14px;font-size:16.5px;line-height:1.65;font-weight:700;margin-top:14px}
+.fb.ok{background:#eafaf2;color:#16794f;border:2px solid #bfe8d3}
+.fb.no{background:#fdf2f1;color:#b02b1e;border:2px solid #f1c9c4}
+.fb.skip{background:#fff8e6;color:#a97214;border:2px solid #f2ddb0}
+.fb.skip .row b{color:#a97214}
+.fb .row{display:block;margin-top:7px;font-weight:600;font-size:15.5px;color:#4a5560;line-height:1.7}
+.fb .row b{color:#b02b1e}
+.fb.ok .row b{color:#16794f}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.center{text-align:center;padding:26px 16px}
+.big{font-size:29px;font-weight:900;margin:8px 0}
+.emo{font-size:64px;line-height:1}
+.stat{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:16px 0}
+.stat div{background:var(--soft);border-radius:14px;padding:9px 13px;font-size:15px;font-weight:700}
+.btn{
+  border:0;border-radius:22px;padding:15px 30px;font-size:19.5px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,#3aa0ff,var(--main));cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.22);
+}
+.btn:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.22)}
+.pop{animation:pop .5s}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.wronglist{text-align:left}
+.wronglist li{background:#fff8f7;border-left:7px solid #eeb0a8;border-radius:12px;padding:10px 12px;margin-bottom:11px;font-family:var(--qfont);font-size:17px;line-height:1.85}
+.wronglist b{color:#b02b1e}
+.wsent{background:#fff;border:2px solid #f3e0dd;border-radius:11px;padding:9px 10px;
+  font-family:var(--qfont);font-size:20px;line-height:2.05;margin-bottom:7px;text-align:left}
+.wrow{margin-top:5px;font-size:15.5px;line-height:1.8;color:#4a5560;font-weight:600}
+.fly{position:fixed;top:-40px;font-size:30px;pointer-events:none;animation:fall 1.6s linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ====================== 题库（由生成器注入，全部取自真实资料 + 课本核验） ====================== */
+const BANK = {"1": [{"kind": "choose", "cat": "字词", "t": "“湖光秋月两相和”中，“和”的意思是{0}。", "fixes": [{"opts": [["温和、和气", "温和、和气"], ["和谐、协调", "和谐、协调"], ["加上、连同", "加上、连同"]], "ans": 1, "why": "“两相和”是湖光与秋月互相映衬、融成一片。", "bad": {"温和、和气": "“和”有这个意思，但这里说的是湖光和月色配合得好。", "加上、连同": "“和”当连词是“跟”，这里讲的是两者融在一起。"}}], "src": "三上·《望洞庭》"}, {"kind": "choose", "cat": "入景", "t": "夜深了，篱笆底下还亮着一盏灯，诗人猜想是孩子们在捉蟋蟀——“知有儿童挑促织，{0}”。", "fixes": [{"opts": [["月黑见渔灯", "月黑见渔灯"], ["江上秋风动客情", "江上秋风动客情"], ["夜深篱落一灯明", "夜深篱落一灯明"]], "ans": 2, "why": "《夜书所见》原句：知有儿童挑促织，夜深篱落一灯明。", "bad": {"江上秋风动客情": "这是上一句写想家，不是写灯。", "月黑见渔灯": "这是《舟夜书所见》江上的渔灯，不在篱笆下。"}}], "src": "三上·《夜书所见》"}, {"kind": "choose", "cat": "入景", "t": "远远望去，洞庭湖和湖中的山一片青翠，那座小山就像白银盘里放着的一只小青螺——“遥望洞庭山水翠，{0}”。", "fixes": [{"opts": [["江上秋风动客情", "江上秋风动客情"], ["潭面无风镜未磨", "潭面无风镜未磨"], ["白银盘里一青螺", "白银盘里一青螺"]], "ans": 2, "why": "《望洞庭》原句：遥望洞庭山水翠，白银盘里一青螺。青螺指的是湖中的君山。", "bad": {"潭面无风镜未磨": "这是写湖面像铜镜，不是写山。", "江上秋风动客情": "这是《夜书所见》里的思乡，和洞庭湖无关。"}}], "src": "三上·《望洞庭》"}, {"kind": "choose", "cat": "辨析", "t": "下面哪一句写的是秋天？{0}", "fixes": [{"opts": [["牧童骑黄牛", "牧童骑黄牛"], ["忽然闭口立", "忽然闭口立"], ["意欲捕鸣蝉", "意欲捕鸣蝉"], ["萧萧梧叶送寒声", "萧萧梧叶送寒声"]], "ans": 3, "why": "《夜书所见》里“萧萧梧叶”“江上秋风”都是秋天的景象。", "bad": {"牧童骑黄牛": "这是夏天，后面还听见知了叫。", "意欲捕鸣蝉": "蝉在夏天叫，这一句写的也是夏天。", "忽然闭口立": "这是《所见》里捉知了的画面，也是夏天。"}}], "src": "三上·《夜书所见》与《所见》对比"}, {"kind": "choose", "cat": "名言", "t": "妹妹弄坏了我的本子，我刚要发火，可一想到自己上次也毛毛躁躁弄坏过别人的东西，就不该把气撒在她身上，把火压了下去。这正合了那句话：“{0}”", "fixes": [{"opts": [["三个臭皮匠，顶个诸葛亮", "三个臭皮匠，顶个诸葛亮"], ["不迁怒，不贰过", "不迁怒，不贰过"], ["爱人若爱其身", "爱人若爱其身"], ["与人善言，暖于布帛", "与人善言，暖于布帛"]], "ans": 1, "why": "“不迁怒”是不把怒气撒到别人身上，“不贰过”是想起自己犯过的错、同样的毛病不再犯。这两点，题里都做到了。", "bad": {"爱人若爱其身": "这是说要像爱自己一样爱别人，不是讲发火和犯错。", "与人善言，暖于布帛": "这是讲说话要温和暖人，和压住火气不是一回事。", "三个臭皮匠，顶个诸葛亮": "这是讲人多主意多，跟这件事没关系。"}}], "src": "三上·语文园地三·日积月累（《论语》）"}, {"kind": "choose", "cat": "入景", "t": "放牛的孩子骑在牛背上，嘹亮的歌声在树林里回荡——“牧童骑黄牛，{0}”。", "fixes": [{"opts": [["忽然闭口立", "忽然闭口立"], ["江上秋风动客情", "江上秋风动客情"], ["歌声振林樾", "歌声振林樾"]], "ans": 2, "why": "《所见》原句：牧童骑黄牛，歌声振林樾。前一句写“骑牛”，后一句就写歌声在树间回荡。", "bad": {"忽然闭口立": "这是后面孩子不出声、站住不动的样子，这里还在唱歌。", "江上秋风动客情": "这是《夜书所见》里的话，写的是想念家乡。"}}], "src": "三上·《所见》（园地一日积月累）"}, {"kind": "choose", "cat": "入景", "t": "秋夜，湖面上没有一丝风，平静得像一面没有打磨过的铜镜——“湖光秋月两相和，{0}”。", "fixes": [{"opts": [["散作满河星", "散作满河星"], ["潭面无风镜未磨", "潭面无风镜未磨"], ["白银盘里一青螺", "白银盘里一青螺"]], "ans": 1, "why": "《望洞庭》原句：湖光秋月两相和，潭面无风镜未磨。湖面平得像没打磨的铜镜。", "bad": {"白银盘里一青螺": "这是后面远望洞庭山的句子，不是写湖面。", "散作满河星": "这是《舟夜书所见》里渔灯散开的样子。"}}], "src": "三上·《望洞庭》"}, {"kind": "choose", "cat": "字词", "t": "“停车坐爱枫林晚”中，“坐”的意思是{0}。", "fixes": [{"opts": [["坐下", "坐下"], ["因为", "因为"], ["座位", "座位"]], "ans": 1, "why": "“坐”在这里是“因为”。停下车来，是因为喜爱这傍晚的枫林。", "bad": {"坐下": "这是现在的常用义，诗里讲不通：停下车是为了“坐下”爱枫林？", "座位": "“座位”是名词，放在这里句子也不通。"}}], "src": "三上·《山行》"}, {"kind": "choose", "cat": "字词", "t": "“歌声振林樾”中，“振”的意思是{0}。", "fixes": [{"opts": [["振动、发抖", "振动、发抖"], ["回荡", "回荡"], ["整齐", "整齐"]], "ans": 1, "why": "“振”是振荡、回荡，歌声在林间来回响。", "bad": {"振动、发抖": "“振”有振动的意思，但歌声是回荡在树林里。", "整齐": "这个意思和歌声对不上。"}}], "src": "三上·《所见》"}], "2": [{"kind": "choose", "cat": "入景", "t": "孩子听见树上知了在叫，想把知了捉下来，就马上闭上嘴、站住不动——“意欲捕鸣蝉，{0}”。", "fixes": [{"opts": [["夜深篱落一灯明", "夜深篱落一灯明"], ["歌声振林樾", "歌声振林樾"], ["忽然闭口立", "忽然闭口立"]], "ans": 2, "why": "《所见》原句：意欲捕鸣蝉，忽然闭口立。“欲”是想要，想捉知了才忽然不出声。", "bad": {"歌声振林樾": "这是上一句，还在唱得起劲，和“闭口”正好相反。", "夜深篱落一灯明": "这是《夜书所见》里的灯，不是捉知了。"}}], "src": "三上·《所见》（园地一日积月累）"}, {"kind": "choose", "cat": "字词", "t": "“霜叶红于二月花”中，“于”的意思是{0}。", "fixes": [{"opts": [["到", "到"], ["在", "在"], ["比", "比"]], "ans": 2, "why": "“红于”就是“比……更红”，霜叶比二月的春花还要红艳。", "bad": {"在": "“红在二月花”说不通，句子就不成话了。", "到": "“红到二月花”也不通，霜叶不是红到了花那里。"}}], "src": "三上·《山行》"}, {"kind": "choose", "cat": "名言", "t": "我们要像爱护自己一样去爱护别人，这就是“{0}”。", "fixes": [{"opts": [["人心齐，泰山移", "人心齐，泰山移"], ["不迁怒，不贰过", "不迁怒，不贰过"], ["爱人若爱其身", "爱人若爱其身"], ["仁者爱人，有礼者敬人", "仁者爱人，有礼者敬人"]], "ans": 2, "why": "墨子说“爱人若爱其身”——爱护别人就像爱护自己一样。", "bad": {"仁者爱人，有礼者敬人": "这是讲关爱别人、尊敬别人，没讲“像爱自己一样”。", "不迁怒，不贰过": "这是讲个人修养，不是讲爱护别人。", "人心齐，泰山移": "这是讲团结，不是讲爱别人。"}}], "src": "三上·语文园地三·日积月累（《墨子》）"}, {"kind": "choose", "cat": "辨析", "t": "哪一首诗写的是“夜里在外地想家”？{0}", "fixes": [{"opts": [["《舟夜书所见》", "《舟夜书所见》"], ["《望洞庭》", "《望洞庭》"], ["《所见》", "《所见》"], ["《夜书所见》", "《夜书所见》"]], "ans": 3, "why": "《夜书所见》里“江上秋风动客情”，“客情”就是在外地想家的心情。", "bad": {"《所见》": "这是写牧童捉知了，没有想家。", "《舟夜书所见》": "也是夜里看景，但写的是江上渔灯，没有思乡。", "《望洞庭》": "这是写洞庭湖的月色和山色，也不是思乡。"}}], "src": "三上·《夜书所见》"}, {"kind": "choose", "cat": "字词", "t": "“白银盘里一青螺”中的“青螺”指的是{0}。", "fixes": [{"opts": [["天上的月亮", "天上的月亮"], ["河里的螺蛳", "河里的螺蛳"], ["湖中的君山", "湖中的君山"]], "ans": 2, "why": "“白银盘”比作洞庭湖，“青螺”比作湖中的君山。", "bad": {"河里的螺蛳": "这是字面上的意思，诗里是比喻，不是真的螺蛳。", "天上的月亮": "月亮在这首诗里说的是“秋月”，不是青螺。"}}], "src": "三上·《望洞庭》"}, {"kind": "choose", "cat": "名言", "t": "我和同桌一起做实验，两个人配合得特别默契，多难的题都解开了，真是“{0}”。", "fixes": [{"opts": [["二人同心，其利断金", "二人同心，其利断金"], ["三个臭皮匠，顶个诸葛亮", "三个臭皮匠，顶个诸葛亮"], ["与人善言，暖于布帛", "与人善言，暖于布帛"], ["人心齐，泰山移", "人心齐，泰山移"]], "ans": 0, "why": "“其利断金”是说两人同心，力量锋利得能斩断金属。只两个人，就用“二人同心”。", "bad": {"人心齐，泰山移": "这也是讲团结，但这里说的是“两个人”，用“二人同心”更准。", "三个臭皮匠，顶个诸葛亮": "这是三个人以上凑主意，不是两个人配合。", "与人善言，暖于布帛": "这是讲说话温和，和做实验没关系。"}}], "src": "三上·语文园地四·日积月累"}, {"kind": "choose", "cat": "名言", "t": "同桌考试没考好，趴在桌上哭，我轻声说了几句安慰他的话，他一下就好了许多。这真是“{0}”。", "fixes": [{"opts": [["伤人以言，深于矛戟", "伤人以言，深于矛戟"], ["与人善言，暖于布帛", "与人善言，暖于布帛"], ["人心齐，泰山移", "人心齐，泰山移"], ["不迁怒，不贰过", "不迁怒，不贰过"]], "ans": 1, "why": "善意的话比棉布还暖人，这就是“与人善言，暖于布帛”。", "bad": {"伤人以言，深于矛戟": "这是说难听的话伤人，和安慰人正好相反。", "人心齐，泰山移": "这是讲团结，不是讲说话。", "不迁怒，不贰过": "这是讲不迁怒、不重复犯错，和安慰人无关。"}}], "src": "三上·语文园地三·日积月累（《荀子》）"}, {"kind": "choose", "cat": "入景", "t": "微风吹起一层层细浪，渔灯的光散开来，好像满河都撒满了星星——“微微风簇浪，{0}”。", "fixes": [{"opts": [["潭面无风镜未磨", "潭面无风镜未磨"], ["孤光一点萤", "孤光一点萤"], ["散作满河星", "散作满河星"]], "ans": 2, "why": "《舟夜书所见》原句：微微风簇浪，散作满河星。", "bad": {"孤光一点萤": "这是没起风时的那一点光，还没散开。", "潭面无风镜未磨": "这是《望洞庭》里的湖面，不是渔灯。"}}], "src": "三上·《舟夜书所见》（园地二日积月累）"}, {"kind": "choose", "cat": "名言", "t": "下面哪一句出自《论语》？{0}", "fixes": [{"opts": [["与人善言，暖于布帛", "与人善言，暖于布帛"], ["爱人若爱其身", "爱人若爱其身"], ["不迁怒，不贰过", "不迁怒，不贰过"], ["仁者爱人，有礼者敬人", "仁者爱人，有礼者敬人"]], "ans": 2, "why": "园地三的四句分别出自《论语》《墨子》《孟子》《荀子》，只有“不迁怒，不贰过”是《论语》。", "bad": {"爱人若爱其身": "这句是《墨子》里的。", "仁者爱人，有礼者敬人": "这句是《孟子》里的。", "与人善言，暖于布帛": "这句是《荀子》里的。"}}], "src": "三上·语文园地三·日积月累"}], "3": [{"kind": "choose", "cat": "名言", "t": "见到老师主动问好，对长辈恭恭敬敬，这就是“{0}”。", "fixes": [{"opts": [["仁者爱人，有礼者敬人", "仁者爱人，有礼者敬人"], ["二人同心，其利断金", "二人同心，其利断金"], ["与人善言，暖于布帛", "与人善言，暖于布帛"], ["爱人若爱其身", "爱人若爱其身"]], "ans": 0, "why": "孟子这句话两层意思：仁爱的人关爱别人，有礼貌的人尊敬别人。", "bad": {"爱人若爱其身": "这是讲像爱自己一样爱别人，没讲到“有礼”。", "与人善言，暖于布帛": "这是讲说话温和，不是讲礼貌待人。", "二人同心，其利断金": "这是讲两人同心，和问好没有关系。"}}], "src": "三上·语文园地三·日积月累（《孟子》）"}, {"kind": "choose", "cat": "字词", "t": "“知有儿童挑促织”中的“促织”是{0}。", "fixes": [{"opts": [["蜘蛛", "蜘蛛"], ["蟋蟀", "蟋蟀"], ["蜻蜓", "蜻蜓"]], "ans": 1, "why": "促织就是蟋蟀，也叫蛐蛐。诗里写孩子夜里提着灯在捉它。", "bad": {"蜘蛛": "蜘蛛不会叫，孩子夜里提灯捉的不是它。", "蜻蜓": "蜻蜓在白天飞，不会夜里在篱笆下捉。"}}], "src": "三上·《夜书所见》"}, {"kind": "choose", "cat": "名言", "t": "生气时我冲好朋友说了很难听的话，他好几天不理我。我这才明白“{0}”——难听的话比刀还扎人。", "fixes": [{"opts": [["爱人若爱其身", "爱人若爱其身"], ["伤人以言，深于矛戟", "伤人以言，深于矛戟"], ["与人善言，暖于布帛", "与人善言，暖于布帛"], ["二人同心，其利断金", "二人同心，其利断金"]], "ans": 1, "why": "“矛戟”是古代的长兵器，荀子说伤人的话比兵器扎得还深。", "bad": {"与人善言，暖于布帛": "这是说好话暖人，和这句意思正好相反。", "爱人若爱其身": "这是讲爱护别人，没讲难听的话有多伤人。", "二人同心，其利断金": "这是讲两个人同心协力，和说话伤人无关。"}}], "src": "三上·语文园地三·日积月累（《荀子》）"}, {"kind": "choose", "cat": "名言", "t": "《荀子》里那句话的后半句是“伤人以言，深于矛戟”，前半句是“{0}”。", "fixes": [{"opts": [["不迁怒，不贰过", "不迁怒，不贰过"], ["爱人若爱其身", "爱人若爱其身"], ["仁者爱人，有礼者敬人", "仁者爱人，有礼者敬人"], ["与人善言，暖于布帛", "与人善言，暖于布帛"]], "ans": 3, "why": "《荀子》原句：与人善言，暖于布帛；伤人以言，深于矛戟。一暖一伤，正好对照。", "bad": {"仁者爱人，有礼者敬人": "这是《孟子》里的话，不是《荀子》那一句。", "不迁怒，不贰过": "这是《论语》里的话，句子也对不上。", "爱人若爱其身": "这是《墨子》里的话，接不上“伤人以言”。"}}], "src": "三上·语文园地三·日积月累（《荀子》）"}, {"kind": "choose", "cat": "辨析", "t": "《所见》前两句写“动”，后两句写“静”。下面属于“静”的描写是{0}。", "fixes": [{"opts": [["歌声振林樾", "歌声振林樾"], ["牧童骑黄牛", "牧童骑黄牛"], ["忽然闭口立", "忽然闭口立"]], "ans": 2, "why": "一动一静是《所见》最妙的地方：先写骑牛唱歌（动），再写闭口站立（静）。", "bad": {"牧童骑黄牛": "骑着牛往前走，这是“动”。", "歌声振林樾": "歌声在树林里回荡，这也是“动”。"}}], "src": "三上·《所见》"}, {"kind": "choose", "cat": "字词", "t": "“意欲捕鸣蝉”中，“欲”的意思是{0}。", "fixes": [{"opts": [["欲望", "欲望"], ["将要", "将要"], ["想要", "想要"]], "ans": 2, "why": "“意欲”就是心里想要，所以后面才“忽然闭口立”。", "bad": {"将要": "“欲”也能表示“将要”，但这里是心里想捉知了。", "欲望": "“欲望”是名词，放在“意欲捕”里讲不通。"}}], "src": "三上·《所见》"}, {"kind": "choose", "cat": "名言", "t": "“不贰过”的意思是{0}。", "fixes": [{"opts": [["不犯同样的错误", "不犯同样的错误"], ["一次错都不能犯", "一次错都不能犯"], ["不对别人发脾气", "不对别人发脾气"]], "ans": 0, "why": "“贰”是第二次，“过”是过错。“不贰过”＝同一个错误不犯第二次。", "bad": {"一次错都不能犯": "不是不许犯错，而是同一个错别犯第二次——人哪能不犯错呢。", "不对别人发脾气": "那是“不迁怒”，不是“不贰过”。"}}], "src": "三上·语文园地三·日积月累（《论语》）"}, {"kind": "choose", "cat": "名言", "t": "三个同学凑在一起想办法，出的主意比班长一个人想的还周全。爷爷笑着说：“这就是‘{0}’啊。”", "fixes": [{"opts": [["仁者爱人，有礼者敬人", "仁者爱人，有礼者敬人"], ["二人同心，其利断金", "二人同心，其利断金"], ["三个臭皮匠，顶个诸葛亮", "三个臭皮匠，顶个诸葛亮"], ["人心齐，泰山移", "人心齐，泰山移"]], "ans": 2, "why": "三个普通人的智慧合起来，能顶上一个诸葛亮——人多主意多。", "bad": {"二人同心，其利断金": "这是讲两个人同心，题里是三个同学。", "人心齐，泰山移": "这是讲齐心用力，不是讲人多主意多。", "仁者爱人，有礼者敬人": "这是讲仁爱和礼貌，和出主意无关。"}}], "src": "三上·语文园地四·日积月累"}, {"kind": "choose", "cat": "入景", "t": "深秋时节，石头小路弯弯曲曲地绕上寒山，白云飘浮的地方还住着人家——“远上寒山石径斜，{0}”。", "fixes": [{"opts": [["停车坐爱枫林晚", "停车坐爱枫林晚"], ["白云生处有人家", "白云生处有人家"], ["霜叶红于二月花", "霜叶红于二月花"]], "ans": 1, "why": "《山行》原句：远上寒山石径斜，白云生处有人家。", "bad": {"停车坐爱枫林晚": "这是后面停下车看枫林的句子，不是写人家。", "霜叶红于二月花": "这是写枫叶比春花还红，不是在写人家。"}}], "src": "三上·《山行》"}], "4": [{"kind": "choose", "cat": "入景", "t": "夜里没有月亮，江面漆黑一片，只看见一盏渔灯，孤零零的像一点萤火——“月黑见渔灯，{0}”。", "fixes": [{"opts": [["夜深篱落一灯明", "夜深篱落一灯明"], ["散作满河星", "散作满河星"], ["孤光一点萤", "孤光一点萤"]], "ans": 2, "why": "《舟夜书所见》原句：月黑见渔灯，孤光一点萤。先写只有一点光，后面才写光散开。", "bad": {"散作满河星": "这是起风以后灯光散开的样子，这里还没起风。", "夜深篱落一灯明": "这是篱笆下的灯，不在江上。"}}], "src": "三上·《舟夜书所见》（园地二日积月累）"}, {"kind": "choose", "cat": "辨析", "t": "《舟夜书所见》里，“散作满河星”的“星”其实是什么？{0}", "fixes": [{"opts": [["渔灯的光散在波浪上的样子", "渔灯的光散在波浪上的样子"], ["天上的星星", "天上的星星"], ["河里飞着的萤火虫", "河里飞着的萤火虫"]], "ans": 0, "why": "微风吹起细浪，渔灯的倒影被浪打碎，看上去就像满河都是星星。", "bad": {"天上的星星": "那一夜“月黑”，连月亮都没有，说的是灯光的倒影。", "河里飞着的萤火虫": "“一点萤”是拿萤火虫打比方，不是真有萤火虫。"}}], "src": "三上·《舟夜书所见》"}, {"kind": "choose", "cat": "辨析", "t": "下面哪一句不是讲“团结”的？{0}", "fixes": [{"opts": [["二人同心，其利断金", "二人同心，其利断金"], ["人心齐，泰山移", "人心齐，泰山移"], ["三个臭皮匠，顶个诸葛亮", "三个臭皮匠，顶个诸葛亮"], ["爱人若爱其身", "爱人若爱其身"]], "ans": 3, "why": "园地四的三句俗语都讲团结；“爱人若爱其身”是园地三讲的仁爱，不是团结。", "bad": {"人心齐，泰山移": "这是讲团结力量大。", "二人同心，其利断金": "这是讲两人同心协力。", "三个臭皮匠，顶个诸葛亮": "这是讲合作、人多主意多。"}}], "src": "三上·园地三与园地四归类"}, {"kind": "choose", "cat": "入景", "t": "傍晚，诗人停下车来舍不得走，因为太爱这片枫林；被霜打过的枫叶，比二月的春花还要红——“停车坐爱枫林晚，{0}”。", "fixes": [{"opts": [["白银盘里一青螺", "白银盘里一青螺"], ["霜叶红于二月花", "霜叶红于二月花"], ["白云生处有人家", "白云生处有人家"]], "ans": 1, "why": "《山行》原句：停车坐爱枫林晚，霜叶红于二月花。“红于”就是比……更红。", "bad": {"白云生处有人家": "这是上山路上看到的人家，不是写枫叶。", "白银盘里一青螺": "这是《望洞庭》里的洞庭山，和枫林无关。"}}], "src": "三上·《山行》"}, {"kind": "choose", "cat": "名言", "t": "拔河比赛前，老师给大家鼓劲：“{0}！只要咱们一条心，再大的困难也扛得过去。”", "fixes": [{"opts": [["爱人若爱其身", "爱人若爱其身"], ["不迁怒，不贰过", "不迁怒，不贰过"], ["人心齐，泰山移", "人心齐，泰山移"], ["三个臭皮匠，顶个诸葛亮", "三个臭皮匠，顶个诸葛亮"]], "ans": 2, "why": "人心往一处想，劲往一处使，连泰山都能移动。", "bad": {"三个臭皮匠，顶个诸葛亮": "这是讲人多智慧多，不是讲齐心用力。", "不迁怒，不贰过": "这是讲个人修养，和拔河无关。", "爱人若爱其身": "这是讲爱护别人，不是鼓劲的话。"}}], "src": "三上·语文园地四·日积月累"}, {"kind": "choose", "cat": "字词", "t": "“远上寒山石径斜”中的“寒山”指的是{0}。", "fixes": [{"opts": [["深秋时节的山", "深秋时节的山"], ["一座名叫“寒山”的山", "一座名叫“寒山”的山"], ["又冷又下着雪的山", "又冷又下着雪的山"]], "ans": 0, "why": "“寒山”指深秋时节带着寒意的山，正好和后面的霜叶对上。", "bad": {"一座名叫“寒山”的山": "“寒山”不是山名，课本注释里说的是深秋的山。", "又冷又下着雪的山": "这首诗写的是深秋枫红的景色，没有下雪。"}}], "src": "三上·《山行》"}, {"kind": "choose", "cat": "字词", "t": "“萧萧梧叶送寒声”中，“萧萧”写的是{0}。", "fixes": [{"opts": [["秋天安静得没有一点声音", "秋天安静得没有一点声音"], ["风吹梧桐叶的声音", "风吹梧桐叶的声音"], ["树叶一片片落下来的样子", "树叶一片片落下来的样子"]], "ans": 1, "why": "“萧萧”是风吹梧桐叶发出的声响，一读就能听见那股凉意。", "bad": {"树叶一片片落下来的样子": "“萧萧”写的是耳朵听到的声音，不是看到的样子。", "秋天安静得没有一点声音": "正好相反，正因为有风声才让人觉得冷。"}}], "src": "三上·《夜书所见》"}, {"kind": "choose", "cat": "入景", "t": "秋风把梧桐叶吹得沙沙响，送来阵阵寒意，江上的秋风勾起了游子想家的心——“萧萧梧叶送寒声，{0}”。", "fixes": [{"opts": [["孤光一点萤", "孤光一点萤"], ["知有儿童挑促织", "知有儿童挑促织"], ["江上秋风动客情", "江上秋风动客情"]], "ans": 2, "why": "《夜书所见》原句：萧萧梧叶送寒声，江上秋风动客情。“客情”就是在外地想家的心情。", "bad": {"知有儿童挑促织": "这是后面猜孩子在捉蟋蟀，不是写想家。", "孤光一点萤": "这是《舟夜书所见》里的渔灯。"}}], "src": "三上·《夜书所见》"}]};
+const CONFIG = {"title": "古诗名言入语境 · 闯关小达人", "color": "#2f6f8f", "badge": "古诗名言 · 语境闯关", "totalTip": "共 35 题", "introEmoji": "🗺️", "introBig": "古诗名言 · 开始", "finishTitle": "会背不算会，会用才算会 ⭐⭐⭐⭐", "levels": [{"n": 1, "name": "第一关 · 一星", "stars": "⭐", "emoji": "🌱", "color": "#22a06b", "tip": "看到画面，想起那一句"}, {"n": 2, "name": "第二关 · 二星", "stars": "⭐⭐", "emoji": "🚀", "color": "#1f6fb2", "tip": "诗里的字，到底什么意思"}, {"n": 3, "name": "第三关 · 三星", "stars": "⭐⭐⭐", "emoji": "👑", "color": "#ef8f1e", "tip": "遇到事，用哪句名言"}, {"n": 4, "name": "第四关 · 四星", "stars": "⭐⭐⭐⭐", "emoji": "🏆", "color": "#a8549a", "tip": "最容易混的地方 · 综合"}, {"n": 5, "name": "回炉关 · 再练一遍", "stars": "🔁", "emoji": "🔥", "color": "#c2622f", "tip": "把跳过的重新做一遍 —— 不看答案"}], "cats": [["入景", "看到画面选诗句"], ["字词", "诗句里的字词"], ["名言", "遇到事用哪句"], ["辨析", "容易混的地方"]], "kindlabel": {"duo": "正确读音", "char": "选字写对", "judge": "判断对错", "choose": "正确选项"}, "tipChoose": "先读懂这段话在说什么，再选<b>最合适的一句</b>。", "rules_html": "<div class=\"std\">古诗名言，<b>会背</b>还不够。<br>放到一句话、一件事里，还能认出它——<br>这才是考试真正考的。</div>", "song_html": "<div class=\"song\">背得滚瓜烂熟，<br>用时想不起来；<br>放进事情里练一练，<br>张嘴就能用出来。</div>", "intro_html": "<b>①</b> 每题先给一段<b>生活里的事</b>，问这里该用<b>哪一句</b>。<br><b>②</b> 选项有 3 个也有 4 个，位置每次都<b>打乱</b>——别记位置。<br><b>③</b> 选错会告诉你<b>为什么这句不行</b>，不是只说“错了”。<br><b>④</b> 不会就点「⏭ 跳过」，先看答案，最后还有「🔁 回炉关」。", "perLevel": 9};
+const RULES_HTML = `<div class="std">古诗名言，<b>会背</b>还不够。<br>放到一句话、一件事里，还能认出它——<br>这才是考试真正考的。</div>`;
+const SONG_HTML = `<div class="song">背得滚瓜烂熟，<br>用时想不起来；<br>放进事情里练一练，<br>张嘴就能用出来。</div>`;
+const INTRO_HTML = `<b>①</b> 每题先给一段<b>生活里的事</b>，问这里该用<b>哪一句</b>。<br><b>②</b> 选项有 3 个也有 4 个，位置每次都<b>打乱</b>——别记位置。<br><b>③</b> 选错会告诉你<b>为什么这句不行</b>，不是只说“错了”。<br><b>④</b> 不会就点「⏭ 跳过」，先看答案，最后还有「🔁 回炉关」。`;
+const KINDLABEL = {"duo": "正确读音", "char": "选字写对", "judge": "判断对错", "choose": "正确选项"};
+
+/* ====================== 常量 ====================== */
+const PER_LEVEL = CONFIG.perLevel || 5;
+const LAST_LEVEL = CONFIG.levels.length;   // 含回炉关
+const TYPES = CONFIG.cats || [];
+function typeName(t){ const x = TYPES.find(y => y[0]===t); return x ? x[1] : '题'; }
+
+/* ====================== 工具 ====================== */
+const app = document.getElementById('app');
+let muted = false, audioCtx = null;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; };
+function beep(ok){
+  if (muted) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination); o.type='sine';
+    if (ok){ o.frequency.setValueAtTime(660,t); o.frequency.setValueAtTime(920,t+0.11); }
+    else  { o.frequency.setValueAtTime(320,t); o.frequency.setValueAtTime(210,t+0.14); }
+    g.gain.setValueAtTime(0.0001,t); g.gain.setValueAtTime(0.15,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.36);
+    o.start(t); o.stop(t+0.4);
+  }catch(e){}
+}
+function flyStars(n){
+  for (let i=0;i<n;i++){
+    const s=document.createElement('div'); s.className='fly'; s.textContent='⭐';
+    s.style.left=(Math.random()*88+6)+'vw'; s.style.animationDelay=(Math.random()*0.7)+'s';
+    document.body.appendChild(s); setTimeout(()=>s.remove(),2500);
+  }
+}
+function splitQ(t){
+  // {0} 与题干里的「（　　）」括号都视作空位：答完/看答案时能把答案填进括号里
+  const out=[]; const re=/\{([0-9])\}|（([ \u3000]*)）/g; let last=0,m;
+  while((m=re.exec(t))!==null){
+    if(m.index>last) out.push({type:'text',v:t.slice(last,m.index)});
+    out.push({type:'blank', i:m[1]!==undefined?+m[1]:0, br:m[2]!==undefined});
+    last=m.index+m[0].length;
+  }
+  if(last<t.length) out.push({type:'text',v:t.slice(last)});
+  return out;
+}
+function hasBlank(t){ return splitQ(t).some(s=>s.type==='blank'); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const NO_HEAD = '。，、；：？！）］｝〉》」』】%‰℃';
+
+/* 题干渲染（逐字；选字＝空＋绿字；多音字＝高亮字＋读音；判断/选择＝纯文本） */
+function renderSentence(q, answers, bi, markBi){
+  const items=[];
+  splitQ(q.t).forEach(sg=>{
+    if(sg.type==='blank'){
+      const a = answers ? answers[0] : null;
+      const wrap = h => sg.br ? '（'+h+'）' : h;
+      if(q.kind==='duo'){
+        let cls='tar'; if(bi===0) cls+=' active'; if(markBi===0) cls+=' mark';
+        let h='<span class="'+cls+'">'+esc(q.tar)+'</span>';
+        if(a){ h += '<span class="py '+(a.right?'fixok':'fixbad')+'">'+esc(a.f)+'</span>'; }
+        items.push({blank:true,c:'',h:wrap(h)}); return;
+      }
+      // char / choose / judge：空位
+      if(a){
+        items.push({blank:true,c:'',h:wrap('<span class="'+(a.right?'fixok':'fixbad')+'">'+esc(a.f)+'</span>')}); return;
+      }
+      let cls='blank'+(sg.br?' inbr':''); if(bi===0) cls+=' active'; if(markBi===0) cls+=' mark';
+      // choose 题的空位按「正确答案长度」拉宽，否则 7~10 字的诗句名言只留一个字的方格，像只需填一个字
+      let sty='';
+      if(q.kind==='choose' && q.fixes && q.fixes[0]){
+        const g=q.fixes[0].opts[q.fixes[0].ans];
+        const L=Math.min(Math.max((g?g[1]:'').length,2),6);
+        sty=' style="min-width:'+(L*1.02+0.5).toFixed(2)+'em"';
+      }
+      items.push({blank:true,c:'',h:wrap('<span class="'+cls+'"'+sty+'></span>')}); return;
+    }
+    for(const ch of sg.v) items.push({blank:false,c:ch,h:esc(ch)});
+  });
+  const n=items.length, same=new Array(n).fill(false);
+  for(let k=0;k<n;k++){
+    if(k>0 && (items[k].blank || NO_HEAD.indexOf(items[k].c)>=0)) same[k-1]=true;
+  }
+  let html='',buf='',cnt=0;
+  for(let k=0;k<n;k++){
+    buf+=items[k].h; cnt++;
+    if(k+1<n && same[k]) continue;
+    html += (cnt>1)?'<span class="glue">'+buf+'</span>':buf;
+    buf=''; cnt=0;
+  }
+  return html;
+}
+function correctAnswers(q){
+  const f=q.fixes[0];
+  return [{f:f.opts[f.ans][1], right:true}];
+}
+/* 出题：每关每类各至少 1 题 */
+let lastIds=[];
+function pick(level){
+  const pool = BANK[level].map((q,idx)=>{ const o=q; o.lv=level; o.id=level+'-'+idx; return o; });
+  const fresh = shuffle(pool.filter(q=>lastIds.indexOf(q.id)<0));
+  const rest  = shuffle(pool.filter(q=>lastIds.indexOf(q.id)>=0));
+  const picked=[];
+  const types=[...new Set(fresh.map(q=>q.cat))];
+  types.forEach(tp=>{ const one=fresh.filter(q=>q.cat===tp)[0]; if(one&&picked.indexOf(one)<0) picked.push(one); });
+  fresh.forEach(q=>{ if(picked.length<PER_LEVEL && picked.indexOf(q)<0) picked.push(q); });
+  rest.forEach(q=>{ if(picked.length<PER_LEVEL && picked.indexOf(q)<0) picked.push(q); });
+  return shuffle(picked).slice(0,PER_LEVEL);
+}
+/* 状态 */
+let S=null;
+function newGame(){
+  if(S && S.round && S.round.length) lastIds = S.round.slice();
+  S={ level:1, queue:[], qi:0, bi:0, answers:[], wrong:0, wrongLog:[], skipLog:[], round:[],
+      skipping:false, reviewSee:0, start:Date.now(), stage:'intro' };
+  S.queue=pick(1); S.round=S.queue.map(q=>q.id); render();
+}
+/* 渲染 */
+function render(){
+  if(S.stage==='intro'){ renderIntro(); return; }
+  const L=CONFIG.levels[S.level-1]; const q=S.queue[S.qi]; const n=q.fixes.length;
+  const fi=q.fixes[0]; S.hot=q.cat; const total=S.queue.length;
+  let html='<div class="topbar"><div class="badge">'
+    +'<span class="lv">'+L.name+'</span><span class="st">'+L.stars+'</span>'
+    +'<span class="pg">'+L.emoji+' 第 '+(S.qi+1)+'/'+total+'</span></div>'
+    +'<button class="iconbtn" id="mute">'+(muted?'🔇':'🔊')+'</button></div>';
+  html += RULES_HTML;
+  const label = KINDLABEL[q.kind] || '选一选';
+  const tip = (q.kind==='duo')
+     ? '句中<b>橙色高亮</b>的那个字，应该读什么音？点下面的读音。'
+     : (q.kind==='judge')
+     ? '这句话说得<b>对不对</b>？点「对」或「错」。'
+     : (q.kind==='choose')
+     ? (CONFIG.tipChoose || '读读这句话，选出<b>正确的一项</b>。')
+     : '句子里<b>空着</b>的地方，应该填哪个字 / 选哪一项？';
+  html+='<div class="card"><div class="qtip">'+tip+'</div><div class="dots">';
+  for(let i=0;i<total;i++) html+='<span class="dot '+(i<S.qi?'ok':(i===S.qi?'now':''))+'"></span>';
+  html+='</div><div class="sentence" id="sen">'+renderSentence(q,S.answers,S.bi,-1)+'</div>'
+    +'<div class="grouplabel">'+label+'</div><div class="opts k-'+q.kind+' n'+fi.opts.length+((function(){
+        let mx=0; fi.opts.forEach(o=>{ if(o[0].length>mx) mx=o[0].length; }); return mx>=9?' long':'';
+      })())+'" id="opts">';
+  const optOrder = shuffle(fi.opts.map((_, i) => i));
+  optOrder.forEach((idx)=>{
+    const o = fi.opts[idx];
+    const bad = S.wrongOpts && S.wrongOpts.indexOf(idx)>-1;
+    html+='<button class="opt'+(bad?' bad':'')+'" data-idx="'+idx+'"'+(bad?' disabled':'')+'>'
+      +'<span class="os">'+esc(o[0])+'</span></button>';
+  });
+  const skipTxt=(S.stage==='review')?'👀 再看一遍答案':'⏭ 跳过这题，直接看答案';
+  const skipHint=(S.stage==='review')?'别急，想不出来就看一眼，结束页还会再列出来':'不会做也没关系，先看看正确答案，最后还有一关「🔁 回炉关」让你不看答案再做一遍';
+  html+='</div><div class="opttip"></div>'
+    +'<div id="fb"></div>'
+    +'<div class="skipbar"><button class="skipbtn" id="skipbtn">'+skipTxt+'</button>'
+    +'<div class="skiphint">'+skipHint+'</div></div></div>';
+  app.innerHTML=html;
+  document.getElementById('mute').onclick=()=>{ muted=!muted; render(); };
+  document.getElementById('skipbtn').onclick=skipQuestion;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.onclick=()=>choose(+b.dataset.idx,b); });
+}
+/* ⏭ 跳过 */
+function skipQuestion(){
+  if(S.skipping) return;
+  S.skipping=true;
+  const q=S.queue[S.qi];
+  if(S.stage==='review') S.reviewSee=(S.reviewSee||0)+1;
+  else if(!S.skipLog.some(x=>x.id===q.id)) S.skipLog.push({id:q.id,q:q,src:q.src,lv:S.level});
+  const a=correctAnswers(q); S.answers=a; S.bi=-1; S.wrongOpts=null; S.hot=null;
+  const sen=document.getElementById('sen'); if(sen){ sen.innerHTML=renderSentence(q,a,-1,-1); }
+  const correctIdx=q.fixes[0].ans;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{
+    b.disabled=true;
+    if(+b.dataset.idx===correctIdx) b.classList.add('good');   // 看答案时把正确选项标绿
+  });
+  const tip=document.querySelectorAll('.opttip')[0];
+  const pos = hasBlank(q.t) ? '上面' : '下面';
+  if(tip) tip.innerHTML=(S.stage==='review'?'这一题先看答案':'这一题先跳过')+'，正确答案在'+pos+'（绿色就是答案）';
+  document.querySelectorAll('.skipbar')[0].style.display='none';
+  const fb=document.getElementById('fb');
+  const good=fi_good(q);
+  fb.innerHTML='<div class="fb skip">'
+    +(S.stage==='review'?'👀 再看一遍：正确答案在'+pos:'⏭ 跳过这题，正确答案在'+pos)
+    +'<span class="row">正确答案：<b class="'+(q.kind==='duo'?'py':'')+'" style="color:#16794f">'+esc(good[0])+'</b>　'+q.fixes[0].why+'</span>'
+    +(q.src?'<span class="row">📖 '+esc(q.src)+'</span>':'')
+    +'<button class="nextbtn" id="skipnext">看懂了，下一题 →</button>'
+    +'<span class="row" style="text-align:center;color:#b3bcc7;font-size:14px">不点也没关系，几秒后自己往下走</span></div>';
+  document.getElementById('skipnext').onclick=skipDone;
+  S.skipTimer=setTimeout(skipDone,3800);
+}
+function fi_good(q){ const f=q.fixes[0]; return f.opts[f.ans]; }
+function skipDone(){
+  if(!S.skipping) return;
+  S.skipping=false;
+  if(S.skipTimer){ clearTimeout(S.skipTimer); S.skipTimer=null; }
+  nextQuestion();
+}
+/* 答题 */
+function choose(idx, btn){
+  const q=S.queue[S.qi]; const fi=q.fixes[0];
+  const right=fi.ans; const fb=document.getElementById('fb');
+  if(idx===right){
+    const good=fi.opts[right];
+    S.answers[0]={f:good[1], right:true};
+    S.wrongOpts=null; S.hot=null;
+    beep(true); btn.classList.add('good');
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.disabled=true; });
+    fb.innerHTML='<div class="fb ok">✅ 答对啦！<span class="row">'+esc(good[0])+'　'+fi.why+'</span>'
+      +'<span class="row">马上进入下一题……</span></div>';
+    setTimeout(nextQuestion,1000);
+  } else {
+    S.wrong+=1;
+    S.wrongOpts=(S.wrongOpts||[]).concat(idx); S.hot=q.cat;
+    const badTxt=(fi.bad && fi.bad[fi.opts[idx][0]]) || '再读读这句，看哪里不对。';
+    S.wrongLog.push({q:q, picked:fi.opts[idx][0], ans:fi.opts[right][0], why:fi.why, bad:badTxt, lv:S.level});
+    beep(false);
+    btn.classList.add('bad','shake'); btn.disabled=true;
+    const sen=document.getElementById('sen'); if(sen) sen.classList.add('shake');
+    fb.innerHTML='<div class="fb no">❌ 不对，看清下面的话，再选一次'
+      +'<span class="row">你选的是：<b>'+esc(fi.opts[idx][0])+'</b>　不对。</span>'
+      +'<span class="row">为什么不对：<b>'+esc(badTxt)+'</b></span>'
+      +'<span class="row">应该选：<b style="color:#16794f">'+esc(fi.opts[right][0])+'</b>　'+esc(fi.why)+'</span></div>';
+  }
+}
+function nextQuestion(){
+  S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null;
+  if(S.qi+1<S.queue.length){ S.qi+=1; render(); }
+  else levelClear();
+}
+function levelClear(){
+  const L=CONFIG.levels[S.level-1];
+  beep(true); flyStars(12);
+  const reviewing=(S.stage==='review'); const cnt=S.queue.length;
+  let html='<div class="card center pop"><div class="emo">'+L.emoji+'</div>'
+    +'<div class="big">'+L.stars+' '+L.name+(reviewing?' 完成！':' 通关！')+'</div>';
+  const sk = reviewing ? (S.reviewSee||0) : S.skipLog.filter(x=>x.lv===S.level).length;
+  html += sk
+    ? '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 '+cnt+' 题完成，其中 <b style="color:#a97214">'+sk+' 题</b>是看答案过的。</div>'
+    : '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 '+cnt+' 题全部自己做对，太厉害了！</div>';
+  html += '<div class="stat"><div>📌 '+L.tip+'</div></div>';
+  if(S.level<LAST_LEVEL){
+    const NL=CONFIG.levels[S.level];
+    html += '<div style="font-size:17px;font-weight:800;color:'+NL.color+'">马上进入 '+NL.name+' ……</div>';
+  } else if(!reviewing && S.skipLog.length){
+    html += '<div style="font-size:17px;font-weight:800;color:#c2622f">🔥 别急着走 —— 马上进入「回炉关」！</div>'
+      +'<div style="margin-top:10px;font-size:15px;font-weight:700;color:#5b6672;line-height:1.8">'
+      +'刚才你<b style="color:#a97214">跳过 '+S.skipLog.length+' 题</b>，<br>这一关把它们<b>重新排一遍</b>，<b style="color:#c2622f">不看答案</b>，自己做做看！</div>';
+  }
+  app.innerHTML=html+'</div>';
+  setTimeout(advance,1900);
+}
+function advance(){
+  if(S.level<LAST_LEVEL && BANK[S.level+1]){
+    S.level+=1; S.qi=0; S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null;
+    S.queue=pick(S.level); S.round=S.round.concat(S.queue.map(q=>q.id)); render();
+  } else if(S.stage!=='review' && S.skipLog.length){ startReview(); }
+  else finish();
+}
+function startReview(){
+  const seen={};
+  S.queue=S.skipLog.filter(x=>{ if(seen[x.id]) return false; seen[x.id]=1; return true; }).map(x=>x.q);
+  if(!S.queue.length){ finish(); return; }
+  S.stage='review'; S.level=CONFIG.levels.length; S.qi=0; S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null; S.skipping=false; S.reviewSee=0;
+  render();
+}
+/* 结束页 */
+function finish(){
+  const sec=Math.round((Date.now()-S.start)/1000);
+  const mm=String(Math.floor(sec/60)).padStart(2,'0'), ss=String(sec%60).padStart(2,'0');
+  beep(true); flyStars(28);
+  const seen={};
+  // 同一道题即使选错多个选项，也只在错题回顾里列一次（保留第一次的错误选项）
+  const uniq=S.wrongLog.filter(x=>{ if(seen[x.q.t]) return false; seen[x.q.t]=1; return true; });
+  let html='<div class="card center pop"><div class="emo">🏆</div><div class="big">闯关成功！</div>'
+    +'<div style="font-size:17px;font-weight:700;color:#5b6672">'+CONFIG.finishTitle
+    + (S.skipLog.length?'　＋ 🔁 回炉关完成':'')+'</div>'
+    +'<div class="stat"><div>⏱ '+mm+':'+ss+'</div><div>❌ 失误 '+S.wrong+' 次</div><div>📝 改错 '+uniq.length+' 处</div>'
+    + (S.skipLog.length?'<div>⏭ 跳过 '+S.skipLog.length+' 题</div>':'')+'</div>'
+    + SONG_HTML;
+  if(uniq.length){
+    html+='<div class="wronglist" style="margin-top:16px"><div style="font-size:16.5px;font-weight:800;margin-bottom:8px">🔍 错题回顾（共 '+uniq.length+' 处）</div><ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    uniq.forEach(x=>{
+      const a=correctAnswers(x.q); a[0].right=false;
+      html+='<li><div class="wsent">'+renderSentence(x.q,a,-1,0)+'</div>'
+        +'<div class="wrow"><b style="color:#b02b1e">你刚才选的“'+esc(x.picked)+'”不对</b></div>'
+        +'<div class="wrow" style="color:#b02b1e">为什么不对：'+esc(x.bad)+'</div>'
+        +'<div class="wrow"><b style="color:#16794f">这样才对：'+esc(x.ans)+'</b>　'+esc(x.why)+'</div></li>';
+    });
+    html+='</ul></div>';
+  }
+  if(S.skipLog.length){
+    html+='<div class="wronglist" style="margin-top:16px;border-color:#f2ddb0;background:#fffdf7"><div style="font-size:16.5px;font-weight:800;margin-bottom:8px;color:#a97214">⏭ 跳过的题目（共 '+S.skipLog.length+' 题 · 已在 🔥 回炉关重做 · 再读一遍）</div><ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    S.skipLog.forEach(x=>{
+      const a=correctAnswers(x.q);
+      html+='<li><div class="wsent">'+renderSentence(x.q,a,-1,-1)+'</div></li>';
+    });
+    html+='</ul></div>';
+  }
+  html+='<div style="margin-top:20px"><button class="btn" id="again">🔄 再来一遍</button></div>'
+    +'<div style="margin-top:12px;font-size:14.5px;color:#93a0ad;font-weight:700">题目和选项顺序都会重新打乱，适合再练一遍</div></div>';
+  app.innerHTML=html;
+  document.getElementById('again').onclick=()=>{ beep(true); newGame(); };
+}
+/* 首页 */
+function renderIntro(){
+  app.innerHTML='<div class="topbar"><div class="badge"><span class="lv">'+CONFIG.badge+'</span><span class="st">⭐⭐⭐⭐</span>'
+    +'<span class="pg">'+CONFIG.totalTip+'</span></div><button class="iconbtn" id="mute">'+(muted?'🔇':'🔊')+'</button></div>'
+    + RULES_HTML
+    + SONG_HTML
+    +'<div class="card center"><div class="emo">'+CONFIG.introEmoji+'</div><div class="big">'+CONFIG.introBig+'</div>'
+    +'<div style="font-size:16px;color:#5b6672;font-weight:700;line-height:1.85;text-align:left">'+INTRO_HTML+'</div>'
+    +'<div style="margin-top:18px"><button class="btn" id="go">开始闯关</button></div></div>';
+  document.getElementById('mute').onclick=()=>{ muted=!muted; renderIntro(); };
+  document.getElementById('go').onclick=()=>{ beep(true); S.stage='play'; render(); };
+}
+newGame();
+</script>
+</body>
+</html>

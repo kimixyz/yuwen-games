@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>的、地、得 · 闯关小达人</title>
+<style>
+:root{
+  --ink:#2b3440; --blue:#1f6fb2; --green:#22a06b; --red:#d9483b;
+  --orange:#ef8f1e; --purple:#a8549a; --line:#e4ebf2; --soft:#f5f9fc; --gray:#7b8794;
+  --qfont:"KaiTi","楷体","STKaiti","Kaiti SC","SimSun","宋体","Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Microsoft YaHei","微软雅黑","PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans CJK SC",sans-serif;
+  color:var(--ink);background:linear-gradient(170deg,#e6f4ff 0%,#f2efff 55%,#fff6e5 100%);
+  min-height:100vh;display:flex;justify-content:center;
+  padding:0 10px calc(20px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%;
+}
+#app{width:100%;max-width:520px;padding-top:12px}
+
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.badge{
+  flex:1;background:#fff;border-radius:18px;padding:9px 13px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;
+}
+.badge .lv{font-size:15.5px;font-weight:800;color:var(--blue)}
+.badge .st{font-size:14px;letter-spacing:1px}
+.badge .pg{margin-left:auto;font-size:14px;color:var(--gray);font-weight:700}
+.iconbtn{width:46px;height:46px;flex:0 0 46px;border:0;border-radius:16px;background:#fff;font-size:22px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);cursor:pointer}
+.iconbtn:active{transform:scale(.94)}
+
+.card{background:#fff;border-radius:22px;padding:16px 15px;box-shadow:0 8px 24px rgba(43,52,64,.10);margin-bottom:12px}
+
+/* ---------- 规则卡（的 / 地 / 得） ---------- */
+.rules{display:grid;gap:7px;margin-bottom:12px}
+.rc{
+  background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 11px;
+  display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 9px;
+}
+.rc .tag{font-size:15px;font-weight:800;color:#fff;border-radius:9px;padding:4px 10px;white-space:nowrap;font-family:var(--qfont)}
+.tag.n{background:#e07b39}.tag.v{background:#2f8fd0}.tag.c{background:#3f9e6c}
+.rc .ar{font-size:15.5px;font-weight:800;color:var(--ink);white-space:nowrap}
+.rc .eg{grid-column:1/-1;font-family:var(--qfont);font-size:15px;color:#8b95a1;line-height:1.6}
+.rc.hot{border-color:var(--orange);background:#fff8ec;box-shadow:0 0 0 3px rgba(239,143,30,.18)}
+
+/* ---------- 标准写法示范条 ---------- */
+.std{
+  background:#fff;border:2px solid #cfe3f5;border-radius:16px;padding:10px 12px;margin-bottom:12px;
+  text-align:center;font-size:14px;font-weight:800;color:#5b6672;line-height:1.9;
+}
+.std .sym{
+  display:inline-block;min-width:42px;font-family:var(--qfont);
+  font-size:34px;font-weight:700;color:var(--ink);
+  background:#f4f8fc;border-radius:8px;margin:0 2px;line-height:1.35;
+}
+.song{
+  background:#fff7e8;border:2px dashed #f0b96a;border-radius:18px;padding:12px 14px;
+  text-align:center;font-family:var(--qfont);font-size:17px;font-weight:800;color:#a35c11;
+  line-height:1.95;margin-bottom:12px;
+}
+
+/* ---------- 进度点 ---------- */
+.dots{display:flex;gap:7px;justify-content:center;margin:2px 0 12px}
+.dot{width:13px;height:13px;border-radius:50%;background:#dfe6ee}
+.dot.ok{background:var(--green)}
+.dot.now{background:var(--orange);animation:bounce .8s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* ---------- 题干 ---------- */
+.qtip{font-family:var(--qfont);font-size:14.5px;color:var(--gray);font-weight:700;text-align:center;margin-bottom:8px;line-height:1.6}
+.qtip b{color:var(--orange)}
+.sentence{
+  font-family:var(--qfont);
+  font-size:25px;line-height:2;font-weight:600;text-align:left;
+  word-break:normal;line-break:strict;letter-spacing:0;
+}
+.glue{white-space:nowrap}
+.blank{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:46px;height:46px;padding:0 4px;
+  border:3px solid #cfd8e3;border-radius:12px;background:#f8fafc;font-family:var(--qfont);
+  vertical-align:middle;margin:0 2px;color:#c3ccd6;font-size:26px;font-weight:700;
+}
+.blank.filled{border-color:var(--green);background:#eafaf2;color:var(--green)}
+.blank.active{border-color:var(--orange);background:#fff6e8;color:#c98a1c;animation:bounce .9s infinite}
+.blank.mark{border-color:#d9483b;background:#fdeceb;color:#b02b1e;box-shadow:0 0 0 3px #fbe0dd}
+.skipsen .blank.filled{border-color:#e8a723;background:#fff7e6;color:#a97214}
+
+/* ---------- 选项：3 个一行 ---------- */
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+.opt{
+  flex:0 1 calc(33.33% - 8px);min-width:90px;max-width:150px;height:104px;
+  border:3px solid #d8e2ec;border-radius:18px;background:#fff;
+  font-family:var(--qfont);
+  font-size:46px;font-weight:700;color:var(--ink);cursor:pointer;
+  box-shadow:0 4px 0 #d8e2ec;transition:transform .1s;padding:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+}
+.opt .os{font-size:46px;line-height:1;font-weight:800}
+.opt .on{font-size:12.5px;line-height:1;font-weight:800;color:#93a0ad;letter-spacing:0}
+.opt:active{transform:translateY(3px);box-shadow:0 1px 0 #d8e2ec}
+.opt.good{border-color:var(--green);background:#eafaf2;color:var(--green);box-shadow:0 4px 0 #bfe8d3}
+.opt.good .on{color:#22a06b}
+.opt.bad{border-color:#f1c9c4;background:#fdf2f1;color:#c6a5a1;box-shadow:none}
+.opt.bad .on{color:#c6a5a1}
+.opt[disabled]{cursor:not-allowed}
+.opt[disabled]:not(.good):not(.bad){opacity:.45;box-shadow:none}
+.opttip{text-align:center;font-size:15px;color:#93a0ad;margin-top:10px;font-weight:700}
+
+/* ---------- 跳过 ---------- */
+.skipbar{text-align:center;margin-top:14px}
+.skipbtn{
+  display:inline-block;border:2px dashed #c9d3de;border-radius:14px;background:#fbfcfe;
+  padding:8px 16px;font-size:14.5px;font-weight:800;color:#93a0ad;cursor:pointer;
+  font-family:inherit;line-height:1.4;
+}
+.skipbtn:active{background:#f1f5f9;color:#6b7785}
+.skiphint{font-size:12.5px;color:#b3bcc7;font-weight:700;margin-top:6px}
+.nextbtn{
+  display:block;width:100%;margin-top:12px;border:none;border-radius:15px;
+  background:#1f6fb2;color:#fff;font-family:inherit;font-size:16.5px;font-weight:800;
+  padding:12px 0;cursor:pointer;box-shadow:0 4px 0 #175a91;
+}
+.nextbtn:active{transform:translateY(2px);box-shadow:0 2px 0 #175a91}
+
+/* ---------- 反馈 ---------- */
+.fb{border-radius:18px;padding:13px 14px;font-size:16.5px;line-height:1.65;font-weight:700;margin-top:14px}
+.fb.ok{background:#eafaf2;color:#16794f;border:2px solid #bfe8d3}
+.fb.no{background:#fdf2f1;color:#b02b1e;border:2px solid #f1c9c4}
+.fb.skip{background:#fff8e6;color:#a97214;border:2px solid #f2ddb0}
+.fb.skip .row b{color:#a97214}
+.fb .row{display:block;margin-top:7px;font-weight:600;font-size:15.5px;color:#4a5560;line-height:1.7}
+.fb .row b{color:#b02b1e}
+.fb.ok .row b{color:#16794f}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+/* ---------- 通关 / 结束 ---------- */
+.center{text-align:center;padding:26px 16px}
+.big{font-size:29px;font-weight:900;margin:8px 0}
+.emo{font-size:64px;line-height:1}
+.stat{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:16px 0}
+.stat div{background:var(--soft);border-radius:14px;padding:9px 13px;font-size:15px;font-weight:700}
+.btn{
+  border:0;border-radius:22px;padding:15px 30px;font-size:19.5px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,#3aa0ff,#1f6fb2);cursor:pointer;box-shadow:0 7px 0 #14548a;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 3px 0 #14548a}
+.pop{animation:pop .5s}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+
+.wronglist{text-align:left}
+.wronglist li{background:#fff8f7;border-left:7px solid #eeb0a8;border-radius:12px;padding:10px 12px;margin-bottom:11px;font-family:var(--qfont);font-size:17px;line-height:1.85}
+.wronglist b{color:#b02b1e}
+.wsent{background:#fff;border:2px solid #f3e0dd;border-radius:11px;padding:9px 10px;
+  font-family:var(--qfont);font-size:20px;line-height:2.05;margin-bottom:7px;text-align:left}
+.wsent .blank{min-width:32px;height:32px;font-size:20px;border-width:2px;border-radius:9px;margin:0 1px}
+.wrow{margin-top:5px;font-size:15.5px;line-height:1.8;color:#4a5560;font-weight:600}
+.symbox{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:32px;height:32px;padding:0 5px;border-radius:9px;
+  font-family:var(--qfont);font-size:21px;font-weight:800;vertical-align:middle;margin-right:4px;
+}
+.symbox.no{background:#fdeceb;color:#b02b1e;border:2px solid #f1c9c4}
+.symbox.yes{background:#eafaf2;color:#16794f;border:2px solid #bfe8d3}
+.symnote{
+  background:#f4f8fc;border:2px dashed #cfd8e3;border-radius:12px;
+  padding:9px 11px;font-family:var(--qfont);font-size:14.5px;line-height:2;color:#5b6672;font-weight:700;
+}
+.fly{position:fixed;top:-40px;font-size:30px;pointer-events:none;animation:fall 1.6s linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================================
+   【题库来源】全部为针对"的、地、得"语法点的范例句，按三上—中年级常见搭配编写，
+   每句均经人工核验（名词前用"的"、动作前用"地"、动作后表结果程度用"得"）。
+   不凭空捏造真题，难度参照《提示语加标点·闯关小达人》四关进阶。
+
+   ★四关设计（维度＝三种助词的语法位置，与参考文件"提示语位置"对应）：
+   第一关 一星：2 个空 · 短句 · 三种位置混着考（提示词紧贴空位，最明显）
+   第二关 二星：2~3 个空 · 句子变长 · 设"陷阱"（同音 de，要看后面是名词还是动作）
+   第三关 三星：3 个空 · 教材风长句 · 近邻相似搭配干扰
+   第四关 四星★全能关：整段【一个"的、地、得"都没有】，全部自己填（类比参考文件"零标点"）
+
+   ★★ 每关抽 5 题，且"的 / 地 / 得"三种类型各至少 1 题；
+      四关跑完后，把"跳过看答案"的句子攒起来开 🔁 回炉关，不看答案再做一遍。
+   ========================================================================= */
+const PER_LEVEL = 5;
+const LAST_LEVEL = 4;
+
+/* 三个选项：固定顺序【的　地　得】，每次位置一样，孩子好找 */
+const PARTS = [{c:'的',n:'白勺的'},{c:'地',n:'土也地'},{c:'得',n:'双人得'}];
+function nameOf(v){ const p = PARTS.find(x => x.c === v); return p ? p.n : '这个字'; }
+function symTag(v, cls){ return '<span class="symbox ' + cls + '">' + v + '</span>' + nameOf(v); }
+
+/* =========================================================================
+   空位类型库：答案 + 解析 + 每个错误选项的错因
+   维度：n＝"的"（名词前面）　v＝"地"（动作前面）　c＝"得"（动作后面，表结果/程度）
+   ========================================================================= */
+const KEYS = {
+  n: { a:'的', name:'白勺的',
+    why:'“的”用在名词前面：后面跟着人或事物——美丽的话、我的书、红红的太阳。',
+    bad:{
+      '地':'“地”用在动作前面（开心地笑），这里后面是名词，要用“的”。',
+      '得':'“得”用在动作后面表示结果（跑得快），这里后面是名词，要用“的”。'}},
+
+  v: { a:'地', name:'土也地',
+    why:'“地”用在动作前面：前面是样子、后面是动作——开心地笑、认真地写、慢慢地走。',
+    bad:{
+      '的':'“的”用在名词前面，这里后面是动作，要用“地”。',
+      '得':'“得”用在动作后面表示结果，这里在动作前面，要用“地”。'}},
+
+  c: { a:'得', name:'双人得',
+    why:'“得”用在动作后面，表示动作的结果或程度——跑得快、写得好、听得懂。',
+    bad:{
+      '的':'“的”用在名词前面，这里在动作后面表示结果，要用“得”。',
+      '地':'“地”用在动作前面，这里在动作后面，要用“得”。'}}
+};
+
+/* ============================== 题库 ============================== */
+const BANK = {
+
+/* ============ 第一关 一星：每句 2 空 · 短句 · 三种位置混着考 ============ */
+1: [
+  {t:'美丽{0}花朵悄悄{1}开。',        k:['n','v']},
+  {t:'我{0}小猫快乐{1}跑。',          k:['n','v']},
+  {t:'红{0}太阳慢慢{1}升。',          k:['n','v']},
+  {t:'小明认真{0}写字，字写{1}好。',  k:['v','c']},
+  {t:'妹妹开心{0}笑，笑{1}很甜。',    k:['v','c']},
+  {t:'老师亲切{0}说，我们听{1}懂。',  k:['v','c']},
+  {t:'弟弟跑{0}快，是大家{1}小英雄。', k:['c','n']},
+  {t:'雨下{0}大，打湿了妈妈{1}衣服。', k:['c','n']},
+  {t:'他画{0}好，得到老师{1}夸奖。',  k:['c','n']},
+  {t:'小鸟自由{0}飞，唱{1}歌真好听。', k:['v','n']},
+  {t:'春天{0}风轻轻{1}吹。',          k:['n','v']}
+],
+
+/* ============ 第二关 二星：2~3 空 · 长句 · 同音陷阱 ============ */
+2: [
+  {t:'下课了，同学们高兴{0}冲出教室，玩{1}满头大汗。', k:['v','c']},
+  {t:'他认真{0}写字，写出{1}字很工整。',            k:['v','n']},
+  {t:'妈妈温柔{0}说：“你做{1}真棒。”',             k:['v','c']},
+  {t:'风猛烈{0}刮着，吹{1}树枝直晃。',              k:['v','c']},
+  {t:'弟弟调皮{0}眨眨眼，逗{1}大家哈哈大笑。',      k:['v','c']},
+  {t:'我小心{0}捧着碗，怕把汤洒{1}满地。',          k:['v','c']},
+  {t:'老师耐心{0}讲解，我们听{1}很明白。',          k:['v','c']},
+  {t:'苹果红{0}像灯笼，是秋天{1}礼物。',            k:['c','n']},
+  {t:'小狗飞快{0}跑过来，它{1}尾巴毛茸茸。',        k:['v','n']},
+  {t:'妹妹用心{0}画，画{1}蝴蝶真漂亮。',            k:['v','n']},
+  {t:'爷爷慢慢{0}走，走得{1}很稳。',                k:['v','c']}
+],
+
+/* ============ 第三关 三星：3 空 · 教材风长句 · 近邻干扰 ============ */
+3: [
+  {t:'清晨，林老师亲切{0}鼓励我，我认真{1}读课文，读{2}很有感情。', k:['v','v','c']},
+  {t:'小明高兴{0}跳起来，他{1}作业写{2}又快又好。',                k:['v','n','c']},
+  {t:'春风轻轻{0}吹，吹{1}柳枝发芽，那是春天{2}信使。',            k:['v','c','n']},
+  {t:'妈妈仔细{0}检查，发现我{1}错字改{2}很干净。',                k:['v','n','c']},
+  {t:'运动员飞快{0}冲过终点，观众激动{1}欢呼，喊{2}嗓子都哑了。',  k:['v','v','c']},
+  {t:'小刺猬慢慢{0}爬，把枣子扎{1}满身，是它{2}晚餐。',            k:['v','c','n']},
+  {t:'老师生动{0}讲课，我们听{1}入了迷，记住{2}知识真牢固。',      k:['v','c','n']},
+  {t:'小松鼠机灵{0}躲开，逃{1}比谁都快，是森林{2}小能手。',        k:['v','c','n']},
+  {t:'雨哗哗{0}下，淋{1}花瓣发抖，那是秋风{2}叹息。',              k:['v','c','n']},
+  {t:'他刻苦{0}练习，弹{1}钢琴好听，得到大家{2}掌声。',            k:['v','c','n']},
+  {t:'小猫悄悄{0}走近，抓{1}老鼠措手不及，是主人{2}好帮手。',      k:['v','c','n']}
+],
+
+/* ============ 第四关 四星★全能关：整段零助词，全部自己填 ============ */
+4: [
+  {t:'春天{0}风轻轻{1}吹，吹{2}柳枝发芽，那是春天{3}信使。',                  k:['n','v','c','n']},
+  {t:'小明高兴{0}跳起来，他{1}作业写{2}又快又好，老师夸{3}他。',              k:['v','n','c','n']},
+  {t:'妈妈温柔{0}说，我认真{1}写字，字写{2}工整，得到{3}表扬。',              k:['v','v','c','n']},
+  {t:'运动员飞快{0}冲过终点，观众激动{1}欢呼，喊{2}嗓子都哑了，是他{3}努力。', k:['v','v','c','n']},
+  {t:'小松鼠机灵{0}躲开，逃{1}比谁都快，是森林{2}小能手，它{3}尾巴毛茸茸。',  k:['v','c','n','n']},
+  {t:'雨哗哗{0}下，淋{1}花瓣发抖，那是秋风{2}叹息，秋天{3}脚步近了。',        k:['v','c','n','n']},
+  {t:'他刻苦{0}练习，弹{1}钢琴好听，得到大家{2}掌声，是同学{3}榜样。',        k:['v','c','n','n']},
+  {t:'小猫悄悄{0}走近，抓{1}老鼠措手不及，是主人{2}好帮手，它{3}爪子尖尖。',  k:['v','c','n','n']}
+]
+};
+
+const LEVELS = [
+  {n:1, name:'第一关 · 一星', stars:'⭐',    emoji:'🌱', color:'#22a06b',
+   tip:'每句 2 个空 · 三种位置混着考（提示词紧贴，最明显）'},
+  {n:2, name:'第二关 · 二星', stars:'⭐⭐',   emoji:'🚀', color:'#1f6fb2',
+   tip:'句子变长 · 同音陷阱 · 看清楚后面是名词还是动作'},
+  {n:3, name:'第三关 · 三星', stars:'⭐⭐⭐',  emoji:'👑', color:'#ef8f1e',
+   tip:'教材风长句 · 3 个空 · 近邻相似搭配干扰'},
+  {n:4, name:'第四关 · 四星', stars:'⭐⭐⭐⭐', emoji:'🏆', color:'#a8549a',
+   tip:'★全能关：整段一个“的、地、得”都没有，全靠你自己填'},
+  {n:5, name:'回炉关 · 再练一遍', stars:'🔁', emoji:'🔥', color:'#c2622f',
+   tip:'把刚才跳过的句子重新做一遍 —— 这次不看答案'}
+];
+
+const SONG = '白勺“的”，名词前面：美丽的花、我的书；<br>土也“地”，动作前面：开心地笑、认真地写；<br>双人“得”，动作后面：跑得快、写得好。';
+const SONG2 = '三兄弟都读 de，写法不一样：<br>左边白、右边勺 → 名词前面用“的”；<br>左边土、右边也 → 动作前面用“地”；<br>左边双人（彳）、右边“日寸” → 动作后面用“得”。';
+
+/* ====================== 工具 ====================== */
+const app = document.getElementById('app');
+let muted = false, audioCtx = null;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+
+function beep(ok){
+  if (muted) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination); o.type = 'sine';
+    if (ok){ o.frequency.setValueAtTime(660, t); o.frequency.setValueAtTime(920, t + 0.11); }
+    else  { o.frequency.setValueAtTime(320, t); o.frequency.setValueAtTime(210, t + 0.14); }
+    g.gain.setValueAtTime(0.0001, t); g.gain.setValueAtTime(0.15, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.36);
+    o.start(t); o.stop(t + 0.4);
+  }catch(e){}
+}
+function flyStars(n){
+  for (let i = 0; i < n; i++){
+    const s = document.createElement('div');
+    s.className = 'fly'; s.textContent = '⭐';
+    s.style.left = (Math.random() * 88 + 6) + 'vw';
+    s.style.animationDelay = (Math.random() * 0.7) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 2500);
+  }
+}
+function splitQ(t){
+  const out = []; const re = /\{(\d)\}/g; let last = 0, m;
+  while ((m = re.exec(t)) !== null){
+    if (m.index > last) out.push({type:'text', v:t.slice(last, m.index)});
+    out.push({type:'blank', i:+m[1]}); last = m.index + m[0].length;
+  }
+  if (last < t.length) out.push({type:'text', v:t.slice(last)});
+  return out;
+}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const CN_NUM = '①②③④⑤⑥⑦⑧';
+
+/* 题干渲染（逐字，空位方框；与参考文件一致做行首禁则粘合） */
+function renderSentence(t, answers, bi, mark){
+  const items = [];
+  splitQ(t).forEach(sg => {
+    if (sg.type === 'blank'){ items.push({b:sg.i, c:''}); return; }
+    for (const ch of sg.v) items.push({c:ch, h:esc(ch)});
+  });
+  items.forEach(it => {
+    if (it.b === undefined) return;
+    const v = answers ? answers[it.b] : null;
+    let cls = 'blank';
+    if (v) cls += ' filled';
+    else if (bi === it.b) cls += ' active';
+    if (v && mark === it.b) cls += ' mark';
+    let inner = '';
+    if (v) inner = esc(v);
+    else if (bi === it.b) inner = CN_NUM[it.b] || String(it.b + 1);
+    it.h = '<span class="' + cls + '">' + inner + '</span>';
+  });
+  /* ★禁则粘合：空位方框和"不能出现在行首"的标点，和它前面的字粘成一个整体 */
+  const NO_HEAD = '。，、；：？！）］｝〉》」』】%‰℃';
+  const n = items.length, same = new Array(n).fill(false);
+  for (let k = 0; k < n; k++){
+    if (k > 0 && (items[k].b !== undefined || NO_HEAD.indexOf(items[k].c) >= 0)) same[k - 1] = true;
+  }
+  let html = '', buf = '', cnt = 0;
+  for (let k = 0; k < n; k++){
+    buf += items[k].h; cnt++;
+    if (k + 1 < n && same[k]) continue;
+    html += (cnt > 1) ? '<span class="glue">' + buf + '</span>' : buf;
+    buf = ''; cnt = 0;
+  }
+  return html;
+}
+function blankCount(q){ return splitQ(q.t).filter(x => x.type === 'blank').length; }
+function ansOf(q, i){ return KEYS[q.k[i]].a; }
+function whyOf(q, i){ return KEYS[q.k[i]].why; }
+function badOf(q, i, v){
+  const K = KEYS[q.k[i]];
+  return (K.bad && K.bad[v]) || '再看看它后面（或前面）是什么：名词前面用“的”，动作前面用“地”，动作后面用“得”。';
+}
+
+/* ---------- 规则卡（的 / 地 / 得） ---------- */
+function rulesHTML(hot){
+  const R = [
+    ['n','的','白勺的','名词前面',  '美丽的话　我的书　红红的太阳'],
+    ['v','地','土也地','动作前面',  '开心地笑　认真地写　慢慢地走'],
+    ['c','得','双人得','动作后面',  '跑得快　写得好　听得懂']
+  ];
+  const LABEL = {'n':'用在名词前面','v':'用在动作前面','c':'用在动作后面'};
+  return '<div class="rules">' + R.map(r =>
+    '<div class="rc' + (hot === r[0] ? ' hot' : '') + '" data-p="' + r[0] + '">'
+    + '<span class="tag ' + r[0] + '">' + r[1] + '</span>'
+    + '<span class="ar">→ ' + r[2] + '（' + r[3] + '）</span>'
+    + '<span class="eg">例：' + r[4] + '</span></div>').join('') + '</div>';
+}
+
+/* ====================== 出题：每关三种类型各至少 1 题 ====================== */
+let lastIds = [];
+function pick(level){
+  const pool = BANK[level].map((q, idx) => {
+    const o = {}; for (const k in q) o[k] = q[k];
+    o.lv = level; o.id = level + '-' + idx; return o;
+  });
+  const fresh = shuffle(pool.filter(q => lastIds.indexOf(q.id) < 0));
+  const rest  = shuffle(pool.filter(q => lastIds.indexOf(q.id) >= 0));
+  const picked = [];
+  ['n','v','c'].forEach(p => {
+    const one = fresh.filter(q => q.k.indexOf(p) >= 0 && picked.indexOf(q) < 0)[0];
+    if (one) picked.push(one);
+  });
+  fresh.forEach(q => { if (picked.length < PER_LEVEL && picked.indexOf(q) < 0) picked.push(q); });
+  rest.forEach(q => { if (picked.length < PER_LEVEL && picked.indexOf(q) < 0) picked.push(q); });
+  return shuffle(picked).slice(0, PER_LEVEL);
+}
+
+/* ====================== 状态 ====================== */
+let S = null;
+function newGame(){
+  if (S && S.round && S.round.length) lastIds = S.round.slice();
+  S = { level:1, queue:[], qi:0, bi:0, answers:[], wrong:0, wrongLog:[], skipLog:[], round:[],
+        skipping:false, reviewSee:0, start:Date.now(), stage:'intro' };
+  S.queue = pick(1);
+  S.round = S.queue.map(q => q.id);
+  render();
+}
+
+/* ====================== 渲染 ====================== */
+function render(){
+  if (S.stage === 'intro'){ renderIntro(); return; }
+  const L = LEVELS[S.level - 1];
+  const q = S.queue[S.qi];
+  const n = blankCount(q);
+  S.hot = q.k[S.bi];                 /* 当前空的正确类型，用于高亮对应规则卡 */
+  const total = S.queue.length;
+
+  let html = '<div class="topbar"><div class="badge">'
+    + '<span class="lv">' + L.name + '</span><span class="st">' + L.stars + '</span>'
+    + '<span class="pg">' + L.emoji + ' 第 ' + (S.qi + 1) + '/' + total + '</span></div>'
+    + '<button class="iconbtn" id="mute">' + (muted ? '🔇' : '🔊') + '</button></div>';
+
+  html += rulesHTML(S.hot);
+
+  const tip = '这一句里有 <b>' + n + '</b> 个空，<b>全部</b>都要选出来。'
+    + '<br><span style="color:#8b95a1">橙框里的 ①②③ 是现在要填第几个空。</span>';
+
+  html += '<div class="card">'
+    + '<div class="qtip">' + tip + '</div>'
+    + '<div class="dots">';
+  for (let i = 0; i < total; i++){
+    html += '<span class="dot ' + (i < S.qi ? 'ok' : (i === S.qi ? 'now' : '')) + '"></span>';
+  }
+  html += '</div><div class="sentence" id="sen">' + renderSentence(q.t, S.answers, S.bi, -1) + '</div>'
+       +  '<div class="opts" id="opts">';
+  PARTS.forEach(p => {
+    const bad = S.wrongOpts && S.wrongOpts.indexOf(p.c) > -1;
+    html += '<button class="opt' + (bad ? ' bad' : '') + '" data-v="' + p.c + '"' + (bad ? ' disabled' : '') + '>'
+      + '<span class="os">' + p.c + '</span>'
+      + '<span class="on">' + p.n + '</span></button>';
+  });
+  const skipTxt = (S.stage === 'review') ? '👀 再看一遍答案' : '⏭ 跳过这一句，直接看答案';
+  const skipHint = (S.stage === 'review')
+    ? '别急，想不出来就看一眼，结束页还会再列出来'
+    : '不会做也没关系，先看看正确的写法，最后还有一关「🔁 回炉关」让你不看答案再做一遍';
+  html += '</div><div class="opttip">给第 ' + (S.bi + 1) + ' 个空选字（共 ' + n + ' 个）</div>'
+       +  '<div id="fb"></div>'
+       + '<div class="skipbar"><button class="skipbtn" id="skipbtn">' + skipTxt + '</button>'
+       +   '<div class="skiphint">' + skipHint + '</div></div>'
+       + '</div>';
+
+  app.innerHTML = html;
+  document.getElementById('mute').onclick = () => { muted = !muted; render(); };
+  document.getElementById('skipbtn').onclick = skipQuestion;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'), b => {
+    b.onclick = () => choose(b.dataset.v, b);
+  });
+}
+
+/* ====================== ⏭ 跳过这一句 ====================== */
+function skipWhy(){
+  return '记住：名词前面用“的”，动作前面用“地”，动作后面（表示结果、程度）用“得”。看清楚这个词在句子里的位置，就不会选错。';
+}
+function skipShort(){
+  return '名词前面用“的”，动作前面用“地”，动作后面用“得”';
+}
+function skipQuestion(){
+  if (S.skipping) return;
+  S.skipping = true;
+  const q = S.queue[S.qi];
+  const n = blankCount(q);
+  if (S.stage === 'review') S.reviewSee = (S.reviewSee || 0) + 1;
+  else if (!S.skipLog.some(x => x.id === q.id))
+    S.skipLog.push({id:q.id, t:q.t, k:q.k, pos:q.pos, src:q.src, lv:S.level});
+
+  const ans = [];
+  for (let i = 0; i < n; i++) ans[i] = ansOf(q, i);
+  S.answers = ans; S.bi = -1; S.wrongOpts = null; S.hot = null;
+  const sen = document.getElementById('sen');
+  if (sen){
+    sen.classList.add('skipsen');
+    sen.innerHTML = renderSentence(q.t, ans, -1, -1);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'), b => { b.disabled = true; });
+  const tip = document.querySelectorAll('.opttip')[0];
+  if (tip) tip.innerHTML = (S.stage === 'review' ? '这一句先看答案' : '这一句先跳过')
+    + '，正确写法在上面（琥珀色的框就是答案）';
+  document.querySelectorAll('.skipbar')[0].style.display = 'none';
+  Array.prototype.forEach.call(document.querySelectorAll('.rc'), c => c.classList.remove('hot'));
+
+  let rows = '';
+  for (let i = 0; i < n; i++)
+    rows += '<span class="row">第 ' + (i + 1) + ' 个空：' + symTag(ansOf(q, i), 'yes') + '　' + whyOf(q, i) + '</span>';
+
+  const fb = document.getElementById('fb');
+  fb.innerHTML = '<div class="fb skip">'
+    + (S.stage === 'review' ? '👀 再看一遍：正确写法在上面' : '⏭ 跳过这一句，正确写法在上面')
+    + rows
+    + '<span class="row">为什么：' + skipWhy() + '</span>'
+    + '<button class="nextbtn" id="skipnext">看懂了，下一句 →</button>'
+    + '<span class="row" style="text-align:center;color:#b3bcc7;font-size:14px">不点也没关系，几秒后自己往下走</span></div>';
+  document.getElementById('skipnext').onclick = skipDone;
+  S.skipTimer = setTimeout(skipDone, 3500);
+}
+function skipDone(){
+  if (!S.skipping) return;
+  S.skipping = false;
+  if (S.skipTimer){ clearTimeout(S.skipTimer); S.skipTimer = null; }
+  nextQuestion();
+}
+
+function renderIntro(){
+  const L = LEVELS[0];
+  app.innerHTML = '<div class="topbar"><div class="badge">'
+    + '<span class="lv">的、地、得 · 闯关</span><span class="st">⭐⭐⭐⭐</span>'
+    + '<span class="pg">共 20 句</span></div>'
+    + '<button class="iconbtn" id="mute">' + (muted ? '🔇' : '🔊') + '</button></div>'
+    + '<div class="std">标准写法（看清字形 · 记住名字）'
+    +   '<div>' + PARTS.map(p => '<span class="sym">' + p.c + '</span>').join('') + '</div>'
+    +   '<div style="font-size:12.5px;color:#8b95a1;font-weight:800">'
+    +     PARTS.map(p => '<span style="display:inline-block;min-width:54px">' + p.n + '</span>').join('')
+    +   '</div></div>'
+    + '<div class="song">' + SONG + '</div>'
+    + rulesHTML(null)
+    + '<div class="card center">'
+    +   '<div class="emo">🌱</div>'
+    +   '<div class="big">四关闯关 · 开始</div>'
+    +   '<div style="font-size:16px;color:#5b6672;font-weight:700;line-height:1.85;text-align:left">'
+    +     '<b>①</b> 三个字都读 <b>de</b>，但<b>写法不同、用法不同</b>：看清楚它后面（或前面）是什么。<br>'
+    +     '<b>②</b> 一句里<b>所有</b>该填的字都要选：名词前面用“的”，动作前面用“地”，动作后面用“得”。<br>'
+    +     '<b>③</b> <b>第四关</b>整段一个“的、地、得”都没有，<b>全靠你自己填</b>。<br>'
+    +     '<b>④</b> 选项只给“的、地、得”三个，选错了会告诉你为什么，选对才能往下走。<br>'
+    +     '<b>⑤</b> 实在不会？点句子下面的<b>「⏭ 跳过这一句」</b>，先把正确写法看一遍再往下走，<b>不算错</b>。<br>'
+    +     '<b>⑥</b> 四关跑完，跳过的句子会攒起来再开一关<b>「🔥 回炉关」</b>——<b>不看答案</b>让你自己做一遍，做完才算真的会。'
+    +   '</div>'
+    +   '<div style="margin-top:18px"><button class="btn" id="go">开始闯关</button></div>'
+    + '</div>';
+  document.getElementById('mute').onclick = () => { muted = !muted; renderIntro(); };
+  document.getElementById('go').onclick = () => { beep(true); S.stage = 'play'; render(); };
+}
+
+function choose(v, btn){
+  const q = S.queue[S.qi];
+  const n = blankCount(q);
+  const right = ansOf(q, S.bi);
+  const fb = document.getElementById('fb');
+
+  if (v === right){
+    S.answers[S.bi] = v; S.wrongOpts = null; S.hot = null;
+    Array.prototype.forEach.call(document.querySelectorAll('.rc'), c => c.classList.remove('hot'));
+    beep(true); btn.classList.add('good');
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'), b => { b.disabled = true; });
+    const cur = S.bi;
+    if (S.bi + 1 < n){
+      S.bi += 1; S.hot = q.k[S.bi];
+      Array.prototype.forEach.call(document.querySelectorAll('.rc'), c => {
+        if (c.dataset.p === S.hot) c.classList.add('hot'); else c.classList.remove('hot');
+      });
+      fb.innerHTML = '<div class="fb ok">✅ 选对啦！'
+        + '<span class="row">' + symTag(v, 'yes') + '　填对了！' + whyOf(q, cur) + '</span>'
+        + '<span class="row">继续给第 ' + (S.bi + 1) + ' 个空选字。</span></div>';
+      setTimeout(render, 700);
+    } else {
+      fb.innerHTML = '<div class="fb ok pop">🎉 这一句全部填对！'
+        + '<span class="row">' + whyOf(q, cur) + '</span>'
+        + '<span class="row">马上进入下一句……</span></div>';
+      setTimeout(nextQuestion, 1100);
+    }
+  } else {
+    S.wrong += 1;
+    S.wrongOpts = (S.wrongOpts || []).concat(v);
+    S.hot = q.k[S.bi];
+    S.wrongLog.push({t:q.t, k:q.k, bi:S.bi, ans:right, why:whyOf(q, S.bi), picked:v, bad:badOf(q, S.bi, v), lv:S.level});
+    beep(false);
+    btn.classList.add('bad', 'shake');
+    btn.disabled = true;
+    const sen = document.getElementById('sen'); if (sen) sen.classList.add('shake');
+    Array.prototype.forEach.call(document.querySelectorAll('.rc'), c => {
+      if (c.dataset.p === S.hot) c.classList.add('hot'); else c.classList.remove('hot');
+    });
+    const tip = document.querySelectorAll('.opttip')[0];
+    if (tip) tip.innerHTML = '看清错因，重新给第 ' + (S.bi + 1) + ' 个空选字';
+    fb.innerHTML = '<div class="fb no">❌ 不对，看清下面的话，再选一次'
+      + '<span class="row">你选的是：' + symTag(v, 'no') + '　不对。</span>'
+      + '<span class="row">为什么不对：<b>' + badOf(q, S.bi, v) + '</b></span>'
+      + '<span class="row">应该填：' + symTag(right, 'yes') + '　' + whyOf(q, S.bi) + '</span></div>';
+  }
+}
+
+function nextQuestion(){
+  S.bi = 0; S.answers = []; S.wrongOpts = null; S.hot = null;
+  if (S.qi + 1 < S.queue.length){ S.qi += 1; render(); }
+  else levelClear();
+}
+
+function levelClear(){
+  const L = LEVELS[S.level - 1];
+  beep(true); flyStars(12);
+  const reviewing = (S.stage === 'review');
+  const cnt = S.queue.length;
+  let html = '<div class="card center pop"><div class="emo">' + L.emoji + '</div>'
+    + '<div class="big">' + L.stars + ' ' + L.name + (reviewing ? ' 完成！' : ' 通关！') + '</div>';
+  const sk = reviewing ? (S.reviewSee || 0) : S.skipLog.filter(x => x.lv === S.level).length;
+  html += sk
+    ? '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 ' + cnt + ' 句完成，其中 <b style="color:#a97214">' + sk + ' 句</b>是看答案过的。</div>'
+    : '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 ' + cnt + ' 句全部自己填对，太厉害了！</div>';
+  html += '<div class="stat"><div>📌 ' + L.tip + '</div></div>';
+  if (S.level < LAST_LEVEL){
+    const NL = LEVELS[S.level];
+    html += '<div style="font-size:17px;font-weight:800;color:' + NL.color + '">马上进入 ' + NL.name + ' ……</div>';
+    if (NL.n === 4) html += '<div style="margin-top:10px;font-size:15px;font-weight:700;color:#a8549a;line-height:1.8">'
+      + '下一关整段<b>一个“的、地、得”都没有</b>，<br>全靠你自己填哦！</div>';
+  }
+  else if (!reviewing && S.skipLog.length){
+    html += '<div style="font-size:17px;font-weight:800;color:#c2622f">🔥 别急着走 —— 马上进入「回炉关」！</div>'
+      + '<div style="margin-top:10px;font-size:15px;font-weight:700;color:#5b6672;line-height:1.8">'
+      + '刚才你<b style="color:#a97214">跳过 ' + S.skipLog.length + ' 句</b>，<br>这一关把它们<b>重新排一遍</b>，'
+      + '<b style="color:#c2622f">不看答案</b>，自己做做看！</div>';
+  }
+  app.innerHTML = html + '</div>';
+  setTimeout(advance, 1900);
+}
+
+function advance(){
+  if (S.level < LAST_LEVEL){
+    S.level += 1; S.qi = 0; S.bi = 0; S.answers = []; S.wrongOpts = null; S.hot = null;
+    S.queue = pick(S.level);
+    S.round = S.round.concat(S.queue.map(q => q.id));
+    render();
+  } else if (S.stage !== 'review' && S.skipLog.length){
+    startReview();
+  } else finish();
+}
+
+function startReview(){
+  const seen = {};
+  S.queue = S.skipLog.filter(x => { if (seen[x.id]) return false; seen[x.id] = 1; return true; })
+    .map(x => ({pos:x.pos, t:x.t, k:x.k, src:x.src, lv:x.lv, id:x.id}));
+  if (!S.queue.length){ finish(); return; }
+  S.stage = 'review'; S.level = 5; S.qi = 0; S.bi = 0; S.answers = [];
+  S.wrongOpts = null; S.hot = null; S.skipping = false; S.reviewSee = 0;
+  render();
+}
+
+function finish(){
+  const sec = Math.round((Date.now() - S.start) / 1000);
+  const mm = String(Math.floor(sec / 60)).padStart(2, '0'), ss = String(sec % 60).padStart(2, '0');
+  beep(true); flyStars(28);
+  const seen = {};
+  const uniq = S.wrongLog.filter(x => { const k = x.t + x.bi + x.picked; if (seen[k]) return false; seen[k] = 1; return true; });
+  let html = '<div class="card center pop"><div class="emo">🏆</div>'
+    + '<div class="big">闯关成功！</div>'
+    + '<div style="font-size:17px;font-weight:700;color:#5b6672">的、地、得 · 四关全部通关 ⭐⭐⭐⭐'
+    + (S.skipLog.length ? '　＋ 🔁 回炉关完成' : '') + '</div>'
+    + '<div class="stat"><div>⏱ ' + mm + ':' + ss + '</div><div>❌ 失误 ' + S.wrong + ' 次</div><div>📝 答错 ' + uniq.length + ' 处</div>'
+    + (S.skipLog.length ? '<div>⏭ 跳过 ' + S.skipLog.length + ' 句</div>' : '') + '</div>'
+    + '<div style="font-size:16px;font-weight:700;color:#155e8a;line-height:1.9;font-family:var(--qfont)">口诀记住：<br>名词前面用<b>“的”</b>，动作前面用<b>“地”</b>，<br>动作后面（结果、程度）用<b>“得”</b>。</div>'
+    + '<div class="song" style="margin-top:14px">' + SONG2 + '</div>';
+  if (uniq.length){
+    html += '<div class="wronglist" style="margin-top:16px">'
+      + '<div style="font-size:16.5px;font-weight:800;margin-bottom:8px">🔍 错题回顾（共 ' + uniq.length + ' 处）</div>'
+      + '<ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    uniq.forEach(x => {
+      const m = splitQ(x.t).filter(s => s.type === 'blank').length, a = {};
+      for (let i = 0; i < m; i++) a[i] = KEYS[x.k[i]].a;
+      a[x.bi] = x.ans;                 /* 填错的那一处用红框标出 */
+      html += '<li>'
+        + '<div class="wsent">' + renderSentence(x.t, a, -1, x.bi) + '</div>'
+        + '<div class="wrow">' + symTag(x.picked, 'no') + '　<b style="color:#b02b1e">你刚才填的是这个，不对</b></div>'
+        + '<div class="wrow" style="color:#b02b1e">为什么不对：' + x.bad + '</div>'
+        + '<div class="wrow">' + symTag(x.ans, 'yes') + '　<b style="color:#16794f">这里应该填这个</b></div>'
+        + '<div class="wrow" style="color:#4a5560">' + x.why + '</div>'
+        + '</li>';
+    });
+    html += '</ul></div>';
+  }
+  if (S.skipLog.length){
+    html += '<div class="wronglist" style="margin-top:16px;border-color:#f2ddb0;background:#fffdf7">'
+      + '<div style="font-size:16.5px;font-weight:800;margin-bottom:8px;color:#a97214">⏭ 跳过的句子（共 ' + S.skipLog.length + ' 句 · 已在 🔥 回炉关重做 · 再读一遍）</div>'
+      + '<ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    S.skipLog.forEach(x => {
+      const m = splitQ(x.t).filter(s => s.type === 'blank').length, a = {};
+      for (let i = 0; i < m; i++) a[i] = KEYS[x.k[i]].a;
+      html += '<li>'
+        + '<div class="wsent skipsen">' + renderSentence(x.t, a, -1, -1) + '</div>'
+        + '<div class="wrow" style="color:#a97214">' + skipShort() + '</div>'
+        + '</li>';
+    });
+    html += '</ul></div>';
+  }
+  html += '<div style="margin-top:20px"><button class="btn" id="again">🔄 再来一次（换新题）</button></div>'
+       +  '<div style="margin-top:12px;font-size:14.5px;color:#93a0ad;font-weight:700">重新抽 20 句，和上一轮完全不同</div></div>';
+  app.innerHTML = html;
+  document.getElementById('again').onclick = () => { beep(true); newGame(); };
+}
+
+newGame();
+</script>
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>古诗选字 · 闯关小达人</title>
+<style>
+:root{
+  --ink:#2b3440; --blue:#1f6fb2; --green:#22a06b; --red:#d9483b;
+  --orange:#ef8f1e; --purple:#a8549a; --line:#e4ebf2; --soft:#f5f9fc; --gray:#7b8794;
+  --qfont:"KaiTi","楷体","STKaiti","Kaiti SC","SimSun","宋体","Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",serif;
+  --main:#a8549a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Microsoft YaHei","微软雅黑","PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans CJK SC",sans-serif;
+  color:var(--ink);background:linear-gradient(170deg,#e6f4ff 0%,#f2efff 55%,#fff6e5 100%);
+  min-height:100vh;display:flex;justify-content:center;
+  padding:0 10px calc(20px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%;
+}
+#app{width:100%;max-width:520px;padding-top:12px}
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.badge{
+  flex:1;background:#fff;border-radius:18px;padding:9px 13px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;
+}
+.badge .lv{font-size:15.5px;font-weight:800;color:var(--main)}
+.badge .st{font-size:14px;letter-spacing:1px}
+.badge .pg{margin-left:auto;font-size:14px;color:var(--gray);font-weight:700}
+.iconbtn{width:46px;height:46px;flex:0 0 46px;border:0;border-radius:16px;background:#fff;font-size:22px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);cursor:pointer}
+.iconbtn:active{transform:scale(.94)}
+.card{background:#fff;border-radius:22px;padding:16px 15px;box-shadow:0 8px 24px rgba(43,52,64,.10);margin-bottom:12px}
+.rules{display:grid;gap:7px;margin-bottom:12px}
+.rc{
+  background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 11px;
+  display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 9px;
+}
+.rc .tag{font-size:13.5px;font-weight:800;color:#fff;border-radius:9px;padding:3px 8px;white-space:nowrap;font-family:var(--qfont);background:var(--main)}
+.rc .ar{font-size:15px;font-weight:800;color:var(--ink);white-space:nowrap}
+.rc .eg{grid-column:1/-1;font-family:var(--qfont);font-size:15px;color:#8b95a1;line-height:1.6}
+.rc.hot{border-color:var(--orange);background:#fff8ec;box-shadow:0 0 0 3px rgba(239,143,30,.18)}
+.std{
+  background:#fff;border:2px solid #cfe3f5;border-radius:16px;padding:10px 12px;margin-bottom:12px;
+  text-align:center;font-size:14px;font-weight:800;color:#5b6672;line-height:1.9;
+}
+.song{
+  background:#fff7e8;border:2px dashed #f0b96a;border-radius:18px;padding:12px 14px;
+  text-align:center;font-family:var(--qfont);font-size:17px;font-weight:800;color:#a35c11;
+  line-height:1.95;margin-bottom:12px;
+}
+.dots{display:flex;gap:7px;justify-content:center;margin:2px 0 12px}
+.dot{width:13px;height:13px;border-radius:50%;background:#dfe6ee}
+.dot.ok{background:var(--green)}
+.dot.now{background:var(--orange);animation:bounce .8s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.qtip{font-family:var(--qfont);font-size:14.5px;color:var(--gray);font-weight:700;text-align:center;margin-bottom:8px;line-height:1.6}
+.qtip b{color:var(--orange)}
+.sentence{
+  font-family:var(--qfont);
+  font-size:25px;line-height:2;font-weight:600;text-align:left;
+  word-break:normal;line-break:strict;letter-spacing:0;
+}
+.glue{white-space:nowrap}
+.err{
+  text-decoration:underline wavy var(--orange);text-decoration-skip-ink:none;
+  color:#b5611a;font-weight:700;
+}
+.err.active{background:#fff3e0;border-radius:6px;text-decoration-color:#d9483b}
+.err.mark{text-decoration:underline wavy var(--red);color:var(--red);background:#fdeceb;border-radius:6px}
+.tar{color:#b5611a;font-weight:700;background:#fff3e0;border-radius:6px;padding:0 2px}
+.tar.active{outline:2px solid #d9483b}
+.tar.mark{color:var(--red);background:#fdeceb;border-radius:6px}
+.fixok{color:var(--green);font-weight:700;background:#eafaf2;border-radius:6px}
+.fixbad{color:var(--red);font-weight:800;background:#fdeceb;border-radius:6px;text-decoration:line-through}
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+.opt{
+  flex:0 1 calc(33.33% - 8px);min-width:90px;max-width:150px;min-height:104px;height:auto;
+  border:3px solid #d8e2ec;border-radius:18px;background:#fff;
+  font-family:var(--qfont);
+  font-size:20px;font-weight:700;color:var(--ink);cursor:pointer;
+  box-shadow:0 4px 0 #d8e2ec;transition:transform .1s;padding:9px 8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.35;
+}
+.opt .os{font-size:22px;line-height:1.3;font-weight:800}
+.opts.k-choose .opt{flex:0 1 calc(50% - 6px);max-width:238px;min-height:74px}
+.opts.k-choose.n3 .opt{flex:0 1 calc(33.33% - 7px);max-width:168px;min-height:82px}
+.opts.k-choose.n3 .opt .os{font-size:18px}
+.opts.k-choose .opt .os{font-size:19px;line-height:1.45;text-align:center;word-break:break-word}
+.opts.k-judge .opt{flex:0 1 calc(50% - 8px);max-width:190px;min-height:88px}
+.opts.k-char .opt,.opts.k-duo .opt{min-height:92px}
+.py{font-family:"Times New Roman",Georgia,"Segoe UI",serif;letter-spacing:.2px}
+.opts.k-duo .opt .os{font-family:"Times New Roman",Georgia,"Segoe UI",serif;font-size:22px;letter-spacing:.3px}
+.opt .on{font-size:12.5px;line-height:1.2;font-weight:800;color:#93a0ad;letter-spacing:0}
+.opt:active{transform:translateY(3px);box-shadow:0 1px 0 #d8e2ec}
+.opt.good{border-color:var(--green);background:#eafaf2;color:var(--green);box-shadow:0 4px 0 #bfe8d3}
+.opt.good .on{color:#22a06b}
+.opt.bad{border-color:#f1c9c4;background:#fdf2f1;color:#c6a5a1;box-shadow:none}
+.opt.bad .on{color:#c6a5a1}
+.opt[disabled]{cursor:not-allowed}
+.opt[disabled]:not(.good):not(.bad){opacity:.45;box-shadow:none}
+.opttip{text-align:center;font-size:15px;color:#93a0ad;margin-top:10px;font-weight:700}
+.opttip:empty{display:none}
+.grouplabel{text-align:center;font-size:13.5px;color:#aab5c0;font-weight:800;margin-top:14px;letter-spacing:1.5px}
+.blank{
+  display:inline-block;min-width:1.72em;height:1.22em;
+  border-bottom:2.5px solid #c8b49a;background:#fbf4e6;border-radius:3px;
+  vertical-align:-0.16em;margin:0 3px;
+}
+.blank.active{border-bottom-color:#d9483b;background:#fff3e0}
+.blank.mark{border-bottom-color:var(--red);background:#fdeceb}
+.blank.inbr{min-width:1.15em}
+.skipbar{text-align:center;margin-top:14px}
+.skipbtn{
+  display:inline-block;border:2px dashed #c9d3de;border-radius:14px;background:#fbfcfe;
+  padding:8px 16px;font-size:14.5px;font-weight:800;color:#93a0ad;cursor:pointer;
+  font-family:inherit;line-height:1.4;
+}
+.skipbtn:active{background:#f1f5f9;color:#6b7785}
+.skiphint{font-size:12.5px;color:#b3bcc7;font-weight:700;margin-top:6px}
+.nextbtn{
+  display:block;width:100%;margin-top:12px;border:none;border-radius:15px;
+  background:var(--main);color:#fff;font-family:inherit;font-size:16.5px;font-weight:800;
+  padding:12px 0;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.18);
+}
+.nextbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.fb{border-radius:18px;padding:13px 14px;font-size:16.5px;line-height:1.65;font-weight:700;margin-top:14px}
+.fb.ok{background:#eafaf2;color:#16794f;border:2px solid #bfe8d3}
+.fb.no{background:#fdf2f1;color:#b02b1e;border:2px solid #f1c9c4}
+.fb.skip{background:#fff8e6;color:#a97214;border:2px solid #f2ddb0}
+.fb.skip .row b{color:#a97214}
+.fb .row{display:block;margin-top:7px;font-weight:600;font-size:15.5px;color:#4a5560;line-height:1.7}
+.fb .row b{color:#b02b1e}
+.fb.ok .row b{color:#16794f}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.center{text-align:center;padding:26px 16px}
+.big{font-size:29px;font-weight:900;margin:8px 0}
+.emo{font-size:64px;line-height:1}
+.stat{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:16px 0}
+.stat div{background:var(--soft);border-radius:14px;padding:9px 13px;font-size:15px;font-weight:700}
+.btn{
+  border:0;border-radius:22px;padding:15px 30px;font-size:19.5px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,#3aa0ff,var(--main));cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.22);
+}
+.btn:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.22)}
+.pop{animation:pop .5s}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.wronglist{text-align:left}
+.wronglist li{background:#fff8f7;border-left:7px solid #eeb0a8;border-radius:12px;padding:10px 12px;margin-bottom:11px;font-family:var(--qfont);font-size:17px;line-height:1.85}
+.wronglist b{color:#b02b1e}
+.wsent{background:#fff;border:2px solid #f3e0dd;border-radius:11px;padding:9px 10px;
+  font-family:var(--qfont);font-size:20px;line-height:2.05;margin-bottom:7px;text-align:left}
+.wrow{margin-top:5px;font-size:15.5px;line-height:1.8;color:#4a5560;font-weight:600}
+.fly{position:fixed;top:-40px;font-size:30px;pointer-events:none;animation:fall 1.6s linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ====================== 题库（由生成器注入，全部取自真实资料 + 课本核验） ====================== */
+const BANK = {"1": [{"kind": "char", "cat": "山行", "t": "远上寒山石{0}斜，白云生处有人家。停车坐爱枫林晚，霜叶红于二月花。", "fixes": [{"opts": [["劲", "劲"], ["径", "径"], ["经", "经"]], "ans": 1, "why": "《山行》原句：远上寒山石径斜，白云生处有人家。停车坐爱枫林晚，霜叶红于二月花。", "bad": {"劲": "这句诗原文是「径」，不是「劲」。", "经": "这句诗原文是「径」，不是「经」。"}}], "src": "三上·古诗《山行》"}, {"kind": "char", "cat": "所见", "t": "牧童{0}黄牛，歌声振林樾。意欲捕鸣蝉，忽然闭口立。", "fixes": [{"opts": [["椅", "椅"], ["骑", "骑"], ["奇", "奇"]], "ans": 1, "why": "《所见》原句：牧童骑黄牛，歌声振林樾。意欲捕鸣蝉，忽然闭口立。", "bad": {"椅": "这句诗原文是「骑」，不是「椅」。", "奇": "这句诗原文是「骑」，不是「奇」。"}}], "src": "三上·古诗《所见》"}, {"kind": "char", "cat": "舟夜书所见", "t": "月黑见渔灯，{0}光一点萤。微微风簇浪，散作满河星。", "fixes": [{"opts": [["瓜", "瓜"], ["狐", "狐"], ["孤", "孤"]], "ans": 2, "why": "《舟夜书所见》原句：月黑见渔灯，孤光一点萤。微微风簇浪，散作满河星。", "bad": {"瓜": "这句诗原文是「孤」，不是「瓜」。", "狐": "这句诗原文是「孤」，不是「狐」。"}}], "src": "三上·古诗《舟夜书所见》"}, {"kind": "char", "cat": "望洞庭", "t": "湖光秋月两相和，潭面无风镜未磨。遥望洞庭山水翠，白银盘里一青{0}。", "fixes": [{"opts": [["萝", "萝"], ["螺", "螺"], ["罗", "罗"]], "ans": 1, "why": "《望洞庭》原句：湖光秋月两相和，潭面无风镜未磨。遥望洞庭山水翠，白银盘里一青螺。", "bad": {"萝": "这句诗原文是「螺」，不是「萝」。", "罗": "这句诗原文是「螺」，不是「罗」。"}}], "src": "三上·古诗《望洞庭》"}, {"kind": "char", "cat": "夜书所见", "t": "萧萧梧叶送寒声，江上秋风动客情。知有儿童挑促织，夜深{0}落一灯明。", "fixes": [{"opts": [["璃", "璃"], ["篱", "篱"], ["离", "离"]], "ans": 1, "why": "《夜书所见》原句：萧萧梧叶送寒声，江上秋风动客情。知有儿童挑促织，夜深篱落一灯明。", "bad": {"璃": "这句诗原文是「篱」，不是「璃」。", "离": "这句诗原文是「篱」，不是「离」。"}}], "src": "三上·古诗《夜书所见》"}, {"kind": "char", "cat": "望洞庭", "t": "湖光秋月两相{0}，潭面无风镜未磨。遥望洞庭山水翠，白银盘里一青螺。", "fixes": [{"opts": [["河", "河"], ["和", "和"], ["合", "合"]], "ans": 1, "why": "《望洞庭》原句：湖光秋月两相和，潭面无风镜未磨。遥望洞庭山水翠，白银盘里一青螺。", "bad": {"河": "这句诗原文是「和」，不是「河」。", "合": "这句诗原文是「和」，不是「合」。"}}], "src": "三上·古诗《望洞庭》"}, {"kind": "char", "cat": "夜书所见", "t": "{0}萧梧叶送寒声，江上秋风动客情。知有儿童挑促织，夜深篱落一灯明。", "fixes": [{"opts": [["肃", "肃"], ["潇", "潇"], ["萧", "萧"]], "ans": 2, "why": "《夜书所见》原句：萧萧梧叶送寒声，江上秋风动客情。知有儿童挑促织，夜深篱落一灯明。", "bad": {"肃": "这句诗原文是「萧」，不是「肃」。", "潇": "这句诗原文是「萧」，不是「潇」。"}}], "src": "三上·古诗《夜书所见》"}], "2": [{"kind": "char", "cat": "山行", "t": "远上寒山石径斜，白云生处有人家。停车坐爱枫林晚，霜叶红{0}二月花。", "fixes": [{"opts": [["与", "与"], ["雨", "雨"], ["于", "于"]], "ans": 2, "why": "《山行》原句：远上寒山石径斜，白云生处有人家。停车坐爱枫林晚，霜叶红于二月花。", "bad": {"与": "这句诗原文是「于」，不是「与」。", "雨": "这句诗原文是「于」，不是「雨」。"}}], "src": "三上·古诗《山行》"}, {"kind": "char", "cat": "夜书所见", "t": "萧萧{0}叶送寒声，江上秋风动客情。知有儿童挑促织，夜深篱落一灯明。", "fixes": [{"opts": [["吾", "吾"], ["语", "语"], ["梧", "梧"]], "ans": 2, "why": "《夜书所见》原句：萧萧梧叶送寒声，江上秋风动客情。知有儿童挑促织，夜深篱落一灯明。", "bad": {"吾": "这句诗原文是「梧」，不是「吾」。", "语": "这句诗原文是「梧」，不是「语」。"}}], "src": "三上·古诗《夜书所见》"}, {"kind": "char", "cat": "所见", "t": "牧童骑黄牛，歌声{0}林樾。意欲捕鸣蝉，忽然闭口立。", "fixes": [{"opts": [["震", "震"], ["振", "振"], ["晨", "晨"]], "ans": 1, "why": "《所见》原句：牧童骑黄牛，歌声振林樾。意欲捕鸣蝉，忽然闭口立。", "bad": {"震": "这句诗原文是「振」，不是「震」。", "晨": "这句诗原文是「振」，不是「晨」。"}}], "src": "三上·古诗《所见》"}, {"kind": "char", "cat": "山行", "t": "远上寒山石径斜，白云生处有人家。停车坐爱枫林晚，{0}叶红于二月花。", "fixes": [{"opts": [["双", "双"], ["箱", "箱"], ["霜", "霜"]], "ans": 2, "why": "《山行》原句：远上寒山石径斜，白云生处有人家。停车坐爱枫林晚，霜叶红于二月花。", "bad": {"双": "这句诗原文是「霜」，不是「双」。", "箱": "这句诗原文是「霜」，不是「箱」。"}}], "src": "三上·古诗《山行》"}, {"kind": "char", "cat": "望洞庭", "t": "湖光秋月两相和，{0}面无风镜未磨。遥望洞庭山水翠，白银盘里一青螺。", "fixes": [{"opts": [["谭", "谭"], ["潭", "潭"], ["淡", "淡"]], "ans": 1, "why": "《望洞庭》原句：湖光秋月两相和，潭面无风镜未磨。遥望洞庭山水翠，白银盘里一青螺。", "bad": {"谭": "这句诗原文是「潭」，不是「谭」。", "淡": "这句诗原文是「潭」，不是「淡」。"}}], "src": "三上·古诗《望洞庭》"}, {"kind": "char", "cat": "山行", "t": "远上寒山石径{0}，白云生处有人家。停车坐爱枫林晚，霜叶红于二月花。", "fixes": [{"opts": [["抖", "抖"], ["料", "料"], ["斜", "斜"]], "ans": 2, "why": "《山行》原句：远上寒山石径斜，白云生处有人家。停车坐爱枫林晚，霜叶红于二月花。", "bad": {"抖": "这句诗原文是「斜」，不是「抖」。", "料": "这句诗原文是「斜」，不是「料」。"}}], "src": "三上·古诗《山行》"}, {"kind": "char", "cat": "舟夜书所见", "t": "月黑见渔灯，孤光一点{0}。微微风簇浪，散作满河星。", "fixes": [{"opts": [["荧", "荧"], ["萤", "萤"], ["荣", "荣"]], "ans": 1, "why": "《舟夜书所见》原句：月黑见渔灯，孤光一点萤。微微风簇浪，散作满河星。", "bad": {"荧": "这句诗原文是「萤」，不是「荧」。", "荣": "这句诗原文是「萤」，不是「荣」。"}}], "src": "三上·古诗《舟夜书所见》"}], "3": [{"kind": "char", "cat": "望洞庭", "t": "湖光秋月两相和，潭面无风镜未{0}。遥望洞庭山水翠，白银盘里一青螺。", "fixes": [{"opts": [["摸", "摸"], ["磨", "磨"], ["摩", "摩"]], "ans": 1, "why": "《望洞庭》原句：湖光秋月两相和，潭面无风镜未磨。遥望洞庭山水翠，白银盘里一青螺。", "bad": {"摸": "这句诗原文是「磨」，不是「摸」。", "摩": "这句诗原文是「磨」，不是「摩」。"}}], "src": "三上·古诗《望洞庭》"}, {"kind": "char", "cat": "所见", "t": "牧童骑黄牛，歌声振林{0}。意欲捕鸣蝉，忽然闭口立。", "fixes": [{"opts": [["樾", "樾"], ["越", "越"], ["悦", "悦"]], "ans": 0, "why": "《所见》原句：牧童骑黄牛，歌声振林樾。意欲捕鸣蝉，忽然闭口立。", "bad": {"越": "这句诗原文是「樾」，不是「越」。", "悦": "这句诗原文是「樾」，不是「悦」。"}}], "src": "三上·古诗《所见》"}, {"kind": "char", "cat": "夜书所见", "t": "萧萧梧叶送寒声，江上秋风动客情。知有儿童{0}促织，夜深篱落一灯明。", "fixes": [{"opts": [["挑", "挑"], ["桃", "桃"], ["跳", "跳"]], "ans": 0, "why": "《夜书所见》原句：萧萧梧叶送寒声，江上秋风动客情。知有儿童挑促织，夜深篱落一灯明。", "bad": {"桃": "这句诗原文是「挑」，不是「桃」。", "跳": "这句诗原文是「挑」，不是「跳」。"}}], "src": "三上·古诗《夜书所见》"}, {"kind": "char", "cat": "山行", "t": "远上寒山石径斜，白云{0}处有人家。停车坐爱枫林晚，霜叶红于二月花。", "fixes": [{"opts": [["升", "升"], ["生", "生"], ["声", "声"]], "ans": 1, "why": "《山行》原句：远上寒山石径斜，白云生处有人家。停车坐爱枫林晚，霜叶红于二月花。", "bad": {"升": "这句诗原文是「生」，不是「升」。", "声": "这句诗原文是「生」，不是「声」。"}}], "src": "三上·古诗《山行》"}, {"kind": "char", "cat": "所见", "t": "牧童骑黄牛，歌声振林樾。意欲捕鸣蝉，忽然{0}口立。", "fixes": [{"opts": [["闭", "闭"], ["团", "团"], ["闲", "闲"]], "ans": 0, "why": "《所见》原句：牧童骑黄牛，歌声振林樾。意欲捕鸣蝉，忽然闭口立。", "bad": {"团": "这句诗原文是「闭」，不是「团」。", "闲": "这句诗原文是「闭」，不是「闲」。"}}], "src": "三上·古诗《所见》"}, {"kind": "char", "cat": "舟夜书所见", "t": "月黑见渔灯，孤光一点萤。微微风{0}浪，散作满河星。", "fixes": [{"opts": [["族", "族"], ["促", "促"], ["簇", "簇"]], "ans": 2, "why": "《舟夜书所见》原句：月黑见渔灯，孤光一点萤。微微风簇浪，散作满河星。", "bad": {"族": "这句诗原文是「簇」，不是「族」。", "促": "这句诗原文是「簇」，不是「促」。"}}], "src": "三上·古诗《舟夜书所见》"}], "4": [{"kind": "char", "cat": "夜书所见", "t": "萧萧梧叶送寒声，江上秋风动客情。知有儿童挑{0}织，夜深篱落一灯明。", "fixes": [{"opts": [["足", "足"], ["捉", "捉"], ["促", "促"]], "ans": 2, "why": "《夜书所见》原句：萧萧梧叶送寒声，江上秋风动客情。知有儿童挑促织，夜深篱落一灯明。", "bad": {"足": "这句诗原文是「促」，不是「足」。", "捉": "这句诗原文是「促」，不是「捉」。"}}], "src": "三上·古诗《夜书所见》"}, {"kind": "char", "cat": "舟夜书所见", "t": "月黑见渔灯，孤光一点萤。微微风簇浪，{0}作满河星。", "fixes": [{"opts": [["艳", "艳"], ["撒", "撒"], ["散", "散"]], "ans": 2, "why": "《舟夜书所见》原句：月黑见渔灯，孤光一点萤。微微风簇浪，散作满河星。", "bad": {"艳": "这句诗原文是「散」，不是「艳」。", "撒": "这句诗原文是「散」，不是「撒」。"}}], "src": "三上·古诗《舟夜书所见》"}, {"kind": "char", "cat": "山行", "t": "远上寒山石径斜，白云生处有人家。停车{0}爱枫林晚，霜叶红于二月花。", "fixes": [{"opts": [["座", "座"], ["坐", "坐"], ["作", "作"]], "ans": 1, "why": "《山行》原句：远上寒山石径斜，白云生处有人家。停车坐爱枫林晚，霜叶红于二月花。", "bad": {"座": "这句诗原文是「坐」，不是「座」。", "作": "这句诗原文是「坐」，不是「作」。"}}], "src": "三上·古诗《山行》"}, {"kind": "char", "cat": "望洞庭", "t": "湖光秋月两相和，潭面无风镜未磨。遥望洞庭山水{0}，白银盘里一青螺。", "fixes": [{"opts": [["萃", "萃"], ["脆", "脆"], ["翠", "翠"]], "ans": 2, "why": "《望洞庭》原句：湖光秋月两相和，潭面无风镜未磨。遥望洞庭山水翠，白银盘里一青螺。", "bad": {"萃": "这句诗原文是「翠」，不是「萃」。", "脆": "这句诗原文是「翠」，不是「脆」。"}}], "src": "三上·古诗《望洞庭》"}, {"kind": "char", "cat": "所见", "t": "牧童骑黄牛，歌声振林樾。意欲{0}鸣蝉，忽然闭口立。", "fixes": [{"opts": [["捕", "捕"], ["补", "补"], ["铺", "铺"]], "ans": 0, "why": "《所见》原句：牧童骑黄牛，歌声振林樾。意欲捕鸣蝉，忽然闭口立。", "bad": {"补": "这句诗原文是「捕」，不是「补」。", "铺": "这句诗原文是「捕」，不是「铺」。"}}], "src": "三上·古诗《所见》"}, {"kind": "char", "cat": "所见", "t": "牧童骑黄牛，歌声振林樾。意欲捕鸣{0}，忽然闭口立。", "fixes": [{"opts": [["弹", "弹"], ["婵", "婵"], ["蝉", "蝉"]], "ans": 2, "why": "《所见》原句：牧童骑黄牛，歌声振林樾。意欲捕鸣蝉，忽然闭口立。", "bad": {"弹": "这句诗原文是「蝉」，不是「弹」。", "婵": "这句诗原文是「蝉」，不是「婵」。"}}], "src": "三上·古诗《所见》"}]};
+const CONFIG = {"title": "古诗选字 · 闯关小达人", "color": "#a8549a", "badge": "古诗选字 · 闯关", "totalTip": "共 26 题", "introEmoji": "📜", "introBig": "古诗选字 · 开始", "finishTitle": "必背古诗，一字不差 ⭐⭐⭐⭐", "levels": [{"n": 1, "name": "第一关 · 一星", "stars": "⭐", "emoji": "🌱", "color": "#22a06b", "tip": "《所见》《舟夜书所见》"}, {"n": 2, "name": "第二关 · 二星", "stars": "⭐⭐", "emoji": "🚀", "color": "#1f6fb2", "tip": "《山行》《夜书所见》"}, {"n": 3, "name": "第三关 · 三星", "stars": "⭐⭐⭐", "emoji": "👑", "color": "#ef8f1e", "tip": "《望洞庭》及易错字"}, {"n": 4, "name": "第四关 · 四星", "stars": "⭐⭐⭐⭐", "emoji": "🏆", "color": "#a8549a", "tip": "五首必背古诗 · 综合练"}, {"n": 5, "name": "回炉关 · 再练一遍", "stars": "🔁", "emoji": "🔥", "color": "#c2622f", "tip": "把跳过的重新做一遍 —— 不看答案"}], "cats": [["所见", "《所见》"], ["山行", "《山行》"], ["望洞庭", "《望洞庭》"], ["夜书所见", "《夜书所见》"], ["舟夜书所见", "《舟夜书所见》"]], "kindlabel": {"duo": "正确读音", "char": "选字写对", "judge": "判断对错", "choose": "正确选项"}, "rules_html": "<div class=\"std\">古诗要<b>会背</b>，更要<b>会写</b>。<br>背得出却写错字，照样算错！<br>把诗里的字看准，填对。</div>", "song_html": "<div class=\"song\">古诗背熟还要写，<br>一个字儿不能差；<br>挖空选字练一练，<br>默写考试不怕它。</div>", "intro_html": "<b>①</b> 诗句里<b>空着</b>的字，从三个选项里选<b>正确的</b>填进去。<br><b>②</b> 干扰项是形近字或同音字（如「坐／座」「径／经」）。<br><b>③</b> 选错会显示<b>正确原句</b>，照着记。<br><b>④</b> 不会就点「⏭ 跳过」，先看答案，最后还有「🔁 回炉关」。", "perLevel": 7};
+const RULES_HTML = `<div class="std">古诗要<b>会背</b>，更要<b>会写</b>。<br>背得出却写错字，照样算错！<br>把诗里的字看准，填对。</div>`;
+const SONG_HTML = `<div class="song">古诗背熟还要写，<br>一个字儿不能差；<br>挖空选字练一练，<br>默写考试不怕它。</div>`;
+const INTRO_HTML = `<b>①</b> 诗句里<b>空着</b>的字，从三个选项里选<b>正确的</b>填进去。<br><b>②</b> 干扰项是形近字或同音字（如「坐／座」「径／经」）。<br><b>③</b> 选错会显示<b>正确原句</b>，照着记。<br><b>④</b> 不会就点「⏭ 跳过」，先看答案，最后还有「🔁 回炉关」。`;
+const KINDLABEL = {"duo": "正确读音", "char": "选字写对", "judge": "判断对错", "choose": "正确选项"};
+
+/* ====================== 常量 ====================== */
+const PER_LEVEL = CONFIG.perLevel || 5;
+const LAST_LEVEL = CONFIG.levels.length;   // 含回炉关
+const TYPES = CONFIG.cats || [];
+function typeName(t){ const x = TYPES.find(y => y[0]===t); return x ? x[1] : '题'; }
+
+/* ====================== 工具 ====================== */
+const app = document.getElementById('app');
+let muted = false, audioCtx = null;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; };
+function beep(ok){
+  if (muted) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination); o.type='sine';
+    if (ok){ o.frequency.setValueAtTime(660,t); o.frequency.setValueAtTime(920,t+0.11); }
+    else  { o.frequency.setValueAtTime(320,t); o.frequency.setValueAtTime(210,t+0.14); }
+    g.gain.setValueAtTime(0.0001,t); g.gain.setValueAtTime(0.15,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.36);
+    o.start(t); o.stop(t+0.4);
+  }catch(e){}
+}
+function flyStars(n){
+  for (let i=0;i<n;i++){
+    const s=document.createElement('div'); s.className='fly'; s.textContent='⭐';
+    s.style.left=(Math.random()*88+6)+'vw'; s.style.animationDelay=(Math.random()*0.7)+'s';
+    document.body.appendChild(s); setTimeout(()=>s.remove(),2500);
+  }
+}
+function splitQ(t){
+  // {0} 与题干里的「（　　）」括号都视作空位：答完/看答案时能把答案填进括号里
+  const out=[]; const re=/\{([0-9])\}|（([ \u3000]*)）/g; let last=0,m;
+  while((m=re.exec(t))!==null){
+    if(m.index>last) out.push({type:'text',v:t.slice(last,m.index)});
+    out.push({type:'blank', i:m[1]!==undefined?+m[1]:0, br:m[2]!==undefined});
+    last=m.index+m[0].length;
+  }
+  if(last<t.length) out.push({type:'text',v:t.slice(last)});
+  return out;
+}
+function hasBlank(t){ return splitQ(t).some(s=>s.type==='blank'); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const NO_HEAD = '。，、；：？！）］｝〉》」』】%‰℃';
+
+/* 题干渲染（逐字；选字＝空＋绿字；多音字＝高亮字＋读音；判断/选择＝纯文本） */
+function renderSentence(q, answers, bi, markBi){
+  const items=[];
+  splitQ(q.t).forEach(sg=>{
+    if(sg.type==='blank'){
+      const a = answers ? answers[0] : null;
+      const wrap = h => sg.br ? '（'+h+'）' : h;
+      if(q.kind==='duo'){
+        let cls='tar'; if(bi===0) cls+=' active'; if(markBi===0) cls+=' mark';
+        let h='<span class="'+cls+'">'+esc(q.tar)+'</span>';
+        if(a){ h += '<span class="py '+(a.right?'fixok':'fixbad')+'">'+esc(a.f)+'</span>'; }
+        items.push({blank:true,c:'',h:wrap(h)}); return;
+      }
+      // char / choose / judge：空位
+      if(a){
+        items.push({blank:true,c:'',h:wrap('<span class="'+(a.right?'fixok':'fixbad')+'">'+esc(a.f)+'</span>')}); return;
+      }
+      let cls='blank'+(sg.br?' inbr':''); if(bi===0) cls+=' active'; if(markBi===0) cls+=' mark';
+      items.push({blank:true,c:'',h:wrap('<span class="'+cls+'"></span>')}); return;
+    }
+    for(const ch of sg.v) items.push({blank:false,c:ch,h:esc(ch)});
+  });
+  const n=items.length, same=new Array(n).fill(false);
+  for(let k=0;k<n;k++){
+    if(k>0 && (items[k].blank || NO_HEAD.indexOf(items[k].c)>=0)) same[k-1]=true;
+  }
+  let html='',buf='',cnt=0;
+  for(let k=0;k<n;k++){
+    buf+=items[k].h; cnt++;
+    if(k+1<n && same[k]) continue;
+    html += (cnt>1)?'<span class="glue">'+buf+'</span>':buf;
+    buf=''; cnt=0;
+  }
+  return html;
+}
+function correctAnswers(q){
+  const f=q.fixes[0];
+  return [{f:f.opts[f.ans][1], right:true}];
+}
+/* 出题：每关每类各至少 1 题 */
+let lastIds=[];
+function pick(level){
+  const pool = BANK[level].map((q,idx)=>{ const o=q; o.lv=level; o.id=level+'-'+idx; return o; });
+  const fresh = shuffle(pool.filter(q=>lastIds.indexOf(q.id)<0));
+  const rest  = shuffle(pool.filter(q=>lastIds.indexOf(q.id)>=0));
+  const picked=[];
+  const types=[...new Set(fresh.map(q=>q.cat))];
+  types.forEach(tp=>{ const one=fresh.filter(q=>q.cat===tp)[0]; if(one&&picked.indexOf(one)<0) picked.push(one); });
+  fresh.forEach(q=>{ if(picked.length<PER_LEVEL && picked.indexOf(q)<0) picked.push(q); });
+  rest.forEach(q=>{ if(picked.length<PER_LEVEL && picked.indexOf(q)<0) picked.push(q); });
+  return shuffle(picked).slice(0,PER_LEVEL);
+}
+/* 状态 */
+let S=null;
+function newGame(){
+  if(S && S.round && S.round.length) lastIds = S.round.slice();
+  S={ level:1, queue:[], qi:0, bi:0, answers:[], wrong:0, wrongLog:[], skipLog:[], round:[],
+      skipping:false, reviewSee:0, start:Date.now(), stage:'intro' };
+  S.queue=pick(1); S.round=S.queue.map(q=>q.id); render();
+}
+/* 渲染 */
+function render(){
+  if(S.stage==='intro'){ renderIntro(); return; }
+  const L=CONFIG.levels[S.level-1]; const q=S.queue[S.qi]; const n=q.fixes.length;
+  const fi=q.fixes[0]; S.hot=q.cat; const total=S.queue.length;
+  let html='<div class="topbar"><div class="badge">'
+    +'<span class="lv">'+L.name+'</span><span class="st">'+L.stars+'</span>'
+    +'<span class="pg">'+L.emoji+' 第 '+(S.qi+1)+'/'+total+'</span></div>'
+    +'<button class="iconbtn" id="mute">'+(muted?'🔇':'🔊')+'</button></div>';
+  html += RULES_HTML;
+  const label = KINDLABEL[q.kind] || '选一选';
+  const tip = (q.kind==='duo')
+     ? '句中<b>橙色高亮</b>的那个字，应该读什么音？点下面的读音。'
+     : (q.kind==='judge')
+     ? '这句话说得<b>对不对</b>？点「对」或「错」。'
+     : (q.kind==='choose')
+     ? '读读这句话，选出<b>正确的一项</b>。'
+     : '句子里<b>空着</b>的地方，应该填哪个字 / 选哪一项？';
+  html+='<div class="card"><div class="qtip">'+tip+'</div><div class="dots">';
+  for(let i=0;i<total;i++) html+='<span class="dot '+(i<S.qi?'ok':(i===S.qi?'now':''))+'"></span>';
+  html+='</div><div class="sentence" id="sen">'+renderSentence(q,S.answers,S.bi,-1)+'</div>'
+    +'<div class="grouplabel">'+label+'</div><div class="opts k-'+q.kind+' n'+fi.opts.length+'" id="opts">';
+  const optOrder = shuffle(fi.opts.map((_, i) => i));
+  optOrder.forEach((idx)=>{
+    const o = fi.opts[idx];
+    const bad = S.wrongOpts && S.wrongOpts.indexOf(idx)>-1;
+    html+='<button class="opt'+(bad?' bad':'')+'" data-idx="'+idx+'"'+(bad?' disabled':'')+'>'
+      +'<span class="os">'+esc(o[0])+'</span></button>';
+  });
+  const skipTxt=(S.stage==='review')?'👀 再看一遍答案':'⏭ 跳过这题，直接看答案';
+  const skipHint=(S.stage==='review')?'别急，想不出来就看一眼，结束页还会再列出来':'不会做也没关系，先看看正确答案，最后还有一关「🔁 回炉关」让你不看答案再做一遍';
+  html+='</div><div class="opttip"></div>'
+    +'<div id="fb"></div>'
+    +'<div class="skipbar"><button class="skipbtn" id="skipbtn">'+skipTxt+'</button>'
+    +'<div class="skiphint">'+skipHint+'</div></div></div>';
+  app.innerHTML=html;
+  document.getElementById('mute').onclick=()=>{ muted=!muted; render(); };
+  document.getElementById('skipbtn').onclick=skipQuestion;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.onclick=()=>choose(+b.dataset.idx,b); });
+}
+/* ⏭ 跳过 */
+function skipQuestion(){
+  if(S.skipping) return;
+  S.skipping=true;
+  const q=S.queue[S.qi];
+  if(S.stage==='review') S.reviewSee=(S.reviewSee||0)+1;
+  else if(!S.skipLog.some(x=>x.id===q.id)) S.skipLog.push({id:q.id,q:q,src:q.src,lv:S.level});
+  const a=correctAnswers(q); S.answers=a; S.bi=-1; S.wrongOpts=null; S.hot=null;
+  const sen=document.getElementById('sen'); if(sen){ sen.innerHTML=renderSentence(q,a,-1,-1); }
+  const correctIdx=q.fixes[0].ans;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{
+    b.disabled=true;
+    if(+b.dataset.idx===correctIdx) b.classList.add('good');   // 看答案时把正确选项标绿
+  });
+  const tip=document.querySelectorAll('.opttip')[0];
+  const pos = hasBlank(q.t) ? '上面' : '下面';
+  if(tip) tip.innerHTML=(S.stage==='review'?'这一题先看答案':'这一题先跳过')+'，正确答案在'+pos+'（绿色就是答案）';
+  document.querySelectorAll('.skipbar')[0].style.display='none';
+  const fb=document.getElementById('fb');
+  const good=fi_good(q);
+  fb.innerHTML='<div class="fb skip">'
+    +(S.stage==='review'?'👀 再看一遍：正确答案在'+pos:'⏭ 跳过这题，正确答案在'+pos)
+    +'<span class="row">正确答案：<b class="'+(q.kind==='duo'?'py':'')+'" style="color:#16794f">'+esc(good[0])+'</b>　'+q.fixes[0].why+'</span>'
+    +(q.src?'<span class="row">📖 '+esc(q.src)+'</span>':'')
+    +'<button class="nextbtn" id="skipnext">看懂了，下一题 →</button>'
+    +'<span class="row" style="text-align:center;color:#b3bcc7;font-size:14px">不点也没关系，几秒后自己往下走</span></div>';
+  document.getElementById('skipnext').onclick=skipDone;
+  S.skipTimer=setTimeout(skipDone,3800);
+}
+function fi_good(q){ const f=q.fixes[0]; return f.opts[f.ans]; }
+function skipDone(){
+  if(!S.skipping) return;
+  S.skipping=false;
+  if(S.skipTimer){ clearTimeout(S.skipTimer); S.skipTimer=null; }
+  nextQuestion();
+}
+/* 答题 */
+function choose(idx, btn){
+  const q=S.queue[S.qi]; const fi=q.fixes[0];
+  const right=fi.ans; const fb=document.getElementById('fb');
+  if(idx===right){
+    const good=fi.opts[right];
+    S.answers[0]={f:good[1], right:true};
+    S.wrongOpts=null; S.hot=null;
+    beep(true); btn.classList.add('good');
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.disabled=true; });
+    fb.innerHTML='<div class="fb ok">✅ 答对啦！<span class="row">'+esc(good[0])+'　'+fi.why+'</span>'
+      +'<span class="row">马上进入下一题……</span></div>';
+    setTimeout(nextQuestion,1000);
+  } else {
+    S.wrong+=1;
+    S.wrongOpts=(S.wrongOpts||[]).concat(idx); S.hot=q.cat;
+    const badTxt=(fi.bad && fi.bad[fi.opts[idx][0]]) || '再读读这句，看哪里不对。';
+    S.wrongLog.push({q:q, picked:fi.opts[idx][0], ans:fi.opts[right][0], why:fi.why, bad:badTxt, lv:S.level});
+    beep(false);
+    btn.classList.add('bad','shake'); btn.disabled=true;
+    const sen=document.getElementById('sen'); if(sen) sen.classList.add('shake');
+    fb.innerHTML='<div class="fb no">❌ 不对，看清下面的话，再选一次'
+      +'<span class="row">你选的是：<b>'+esc(fi.opts[idx][0])+'</b>　不对。</span>'
+      +'<span class="row">为什么不对：<b>'+esc(badTxt)+'</b></span>'
+      +'<span class="row">应该选：<b style="color:#16794f">'+esc(fi.opts[right][0])+'</b>　'+esc(fi.why)+'</span></div>';
+  }
+}
+function nextQuestion(){
+  S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null;
+  if(S.qi+1<S.queue.length){ S.qi+=1; render(); }
+  else levelClear();
+}
+function levelClear(){
+  const L=CONFIG.levels[S.level-1];
+  beep(true); flyStars(12);
+  const reviewing=(S.stage==='review'); const cnt=S.queue.length;
+  let html='<div class="card center pop"><div class="emo">'+L.emoji+'</div>'
+    +'<div class="big">'+L.stars+' '+L.name+(reviewing?' 完成！':' 通关！')+'</div>';
+  const sk = reviewing ? (S.reviewSee||0) : S.skipLog.filter(x=>x.lv===S.level).length;
+  html += sk
+    ? '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 '+cnt+' 题完成，其中 <b style="color:#a97214">'+sk+' 题</b>是看答案过的。</div>'
+    : '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 '+cnt+' 题全部自己做对，太厉害了！</div>';
+  html += '<div class="stat"><div>📌 '+L.tip+'</div></div>';
+  if(S.level<LAST_LEVEL){
+    const NL=CONFIG.levels[S.level];
+    html += '<div style="font-size:17px;font-weight:800;color:'+NL.color+'">马上进入 '+NL.name+' ……</div>';
+  } else if(!reviewing && S.skipLog.length){
+    html += '<div style="font-size:17px;font-weight:800;color:#c2622f">🔥 别急着走 —— 马上进入「回炉关」！</div>'
+      +'<div style="margin-top:10px;font-size:15px;font-weight:700;color:#5b6672;line-height:1.8">'
+      +'刚才你<b style="color:#a97214">跳过 '+S.skipLog.length+' 题</b>，<br>这一关把它们<b>重新排一遍</b>，<b style="color:#c2622f">不看答案</b>，自己做做看！</div>';
+  }
+  app.innerHTML=html+'</div>';
+  setTimeout(advance,1900);
+}
+function advance(){
+  if(S.level<LAST_LEVEL && BANK[S.level+1]){
+    S.level+=1; S.qi=0; S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null;
+    S.queue=pick(S.level); S.round=S.round.concat(S.queue.map(q=>q.id)); render();
+  } else if(S.stage!=='review' && S.skipLog.length){ startReview(); }
+  else finish();
+}
+function startReview(){
+  const seen={};
+  S.queue=S.skipLog.filter(x=>{ if(seen[x.id]) return false; seen[x.id]=1; return true; }).map(x=>x.q);
+  if(!S.queue.length){ finish(); return; }
+  S.stage='review'; S.level=CONFIG.levels.length; S.qi=0; S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null; S.skipping=false; S.reviewSee=0;
+  render();
+}
+/* 结束页 */
+function finish(){
+  const sec=Math.round((Date.now()-S.start)/1000);
+  const mm=String(Math.floor(sec/60)).padStart(2,'0'), ss=String(sec%60).padStart(2,'0');
+  beep(true); flyStars(28);
+  const seen={};
+  // 同一道题即使选错多个选项，也只在错题回顾里列一次（保留第一次的错误选项）
+  const uniq=S.wrongLog.filter(x=>{ if(seen[x.q.t]) return false; seen[x.q.t]=1; return true; });
+  let html='<div class="card center pop"><div class="emo">🏆</div><div class="big">闯关成功！</div>'
+    +'<div style="font-size:17px;font-weight:700;color:#5b6672">'+CONFIG.finishTitle
+    + (S.skipLog.length?'　＋ 🔁 回炉关完成':'')+'</div>'
+    +'<div class="stat"><div>⏱ '+mm+':'+ss+'</div><div>❌ 失误 '+S.wrong+' 次</div><div>📝 改错 '+uniq.length+' 处</div>'
+    + (S.skipLog.length?'<div>⏭ 跳过 '+S.skipLog.length+' 题</div>':'')+'</div>'
+    + SONG_HTML;
+  if(uniq.length){
+    html+='<div class="wronglist" style="margin-top:16px"><div style="font-size:16.5px;font-weight:800;margin-bottom:8px">🔍 错题回顾（共 '+uniq.length+' 处）</div><ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    uniq.forEach(x=>{
+      const a=correctAnswers(x.q); a[0].right=false;
+      html+='<li><div class="wsent">'+renderSentence(x.q,a,-1,0)+'</div>'
+        +'<div class="wrow"><b style="color:#b02b1e">你刚才选的“'+esc(x.picked)+'”不对</b></div>'
+        +'<div class="wrow" style="color:#b02b1e">为什么不对：'+esc(x.bad)+'</div>'
+        +'<div class="wrow"><b style="color:#16794f">这样才对：'+esc(x.ans)+'</b>　'+esc(x.why)+'</div></li>';
+    });
+    html+='</ul></div>';
+  }
+  if(S.skipLog.length){
+    html+='<div class="wronglist" style="margin-top:16px;border-color:#f2ddb0;background:#fffdf7"><div style="font-size:16.5px;font-weight:800;margin-bottom:8px;color:#a97214">⏭ 跳过的题目（共 '+S.skipLog.length+' 题 · 已在 🔥 回炉关重做 · 再读一遍）</div><ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    S.skipLog.forEach(x=>{
+      const a=correctAnswers(x.q);
+      html+='<li><div class="wsent">'+renderSentence(x.q,a,-1,-1)+'</div></li>';
+    });
+    html+='</ul></div>';
+  }
+  html+='<div style="margin-top:20px"><button class="btn" id="again">🔄 再来一遍</button></div>'
+    +'<div style="margin-top:12px;font-size:14.5px;color:#93a0ad;font-weight:700">题目和选项顺序都会重新打乱，适合再练一遍</div></div>';
+  app.innerHTML=html;
+  document.getElementById('again').onclick=()=>{ beep(true); newGame(); };
+}
+/* 首页 */
+function renderIntro(){
+  app.innerHTML='<div class="topbar"><div class="badge"><span class="lv">'+CONFIG.badge+'</span><span class="st">⭐⭐⭐⭐</span>'
+    +'<span class="pg">'+CONFIG.totalTip+'</span></div><button class="iconbtn" id="mute">'+(muted?'🔇':'🔊')+'</button></div>'
+    + RULES_HTML
+    + SONG_HTML
+    +'<div class="card center"><div class="emo">'+CONFIG.introEmoji+'</div><div class="big">'+CONFIG.introBig+'</div>'
+    +'<div style="font-size:16px;color:#5b6672;font-weight:700;line-height:1.85;text-align:left">'+INTRO_HTML+'</div>'
+    +'<div style="margin-top:18px"><button class="btn" id="go">开始闯关</button></div></div>';
+  document.getElementById('mute').onclick=()=>{ muted=!muted; renderIntro(); };
+  document.getElementById('go').onclick=()=>{ beep(true); S.stage='play'; render(); };
+}
+newGame();
+</script>
+</body>
+</html>

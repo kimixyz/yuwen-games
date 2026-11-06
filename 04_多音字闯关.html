@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>多音字 · 闯关小达人</title>
+<style>
+:root{
+  --ink:#2b3440; --blue:#1f6fb2; --green:#22a06b; --red:#d9483b;
+  --orange:#ef8f1e; --purple:#a8549a; --line:#e4ebf2; --soft:#f5f9fc; --gray:#7b8794;
+  --qfont:"KaiTi","楷体","STKaiti","Kaiti SC","SimSun","宋体","Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",serif;
+  --main:#1f6fb2;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Microsoft YaHei","微软雅黑","PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans CJK SC",sans-serif;
+  color:var(--ink);background:linear-gradient(170deg,#e6f4ff 0%,#f2efff 55%,#fff6e5 100%);
+  min-height:100vh;display:flex;justify-content:center;
+  padding:0 10px calc(20px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%;
+}
+#app{width:100%;max-width:520px;padding-top:12px}
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.badge{
+  flex:1;background:#fff;border-radius:18px;padding:9px 13px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;
+}
+.badge .lv{font-size:15.5px;font-weight:800;color:var(--main)}
+.badge .st{font-size:14px;letter-spacing:1px}
+.badge .pg{margin-left:auto;font-size:14px;color:var(--gray);font-weight:700}
+.iconbtn{width:46px;height:46px;flex:0 0 46px;border:0;border-radius:16px;background:#fff;font-size:22px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);cursor:pointer}
+.iconbtn:active{transform:scale(.94)}
+.card{background:#fff;border-radius:22px;padding:16px 15px;box-shadow:0 8px 24px rgba(43,52,64,.10);margin-bottom:12px}
+.rules{display:grid;gap:7px;margin-bottom:12px}
+.rc{
+  background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 11px;
+  display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 9px;
+}
+.rc .tag{font-size:13.5px;font-weight:800;color:#fff;border-radius:9px;padding:3px 8px;white-space:nowrap;font-family:var(--qfont);background:var(--main)}
+.rc .ar{font-size:15px;font-weight:800;color:var(--ink);white-space:nowrap}
+.rc .eg{grid-column:1/-1;font-family:var(--qfont);font-size:15px;color:#8b95a1;line-height:1.6}
+.rc.hot{border-color:var(--orange);background:#fff8ec;box-shadow:0 0 0 3px rgba(239,143,30,.18)}
+.std{
+  background:#fff;border:2px solid #cfe3f5;border-radius:16px;padding:10px 12px;margin-bottom:12px;
+  text-align:center;font-size:14px;font-weight:800;color:#5b6672;line-height:1.9;
+}
+.song{
+  background:#fff7e8;border:2px dashed #f0b96a;border-radius:18px;padding:12px 14px;
+  text-align:center;font-family:var(--qfont);font-size:17px;font-weight:800;color:#a35c11;
+  line-height:1.95;margin-bottom:12px;
+}
+.dots{display:flex;gap:7px;justify-content:center;margin:2px 0 12px}
+.dot{width:13px;height:13px;border-radius:50%;background:#dfe6ee}
+.dot.ok{background:var(--green)}
+.dot.now{background:var(--orange);animation:bounce .8s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.qtip{font-family:var(--qfont);font-size:14.5px;color:var(--gray);font-weight:700;text-align:center;margin-bottom:8px;line-height:1.6}
+.qtip b{color:var(--orange)}
+.sentence{
+  font-family:var(--qfont);
+  font-size:25px;line-height:2;font-weight:600;text-align:left;
+  word-break:normal;line-break:strict;letter-spacing:0;
+}
+.glue{white-space:nowrap}
+.err{
+  text-decoration:underline wavy var(--orange);text-decoration-skip-ink:none;
+  color:#b5611a;font-weight:700;
+}
+.err.active{background:#fff3e0;border-radius:6px;text-decoration-color:#d9483b}
+.err.mark{text-decoration:underline wavy var(--red);color:var(--red);background:#fdeceb;border-radius:6px}
+.tar{color:#b5611a;font-weight:700;background:#fff3e0;border-radius:6px;padding:0 2px}
+.tar.active{outline:2px solid #d9483b}
+.tar.mark{color:var(--red);background:#fdeceb;border-radius:6px}
+.fixok{color:var(--green);font-weight:700;background:#eafaf2;border-radius:6px}
+.fixbad{color:var(--red);font-weight:800;background:#fdeceb;border-radius:6px;text-decoration:line-through}
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+.opt{
+  flex:0 1 calc(33.33% - 8px);min-width:90px;max-width:150px;min-height:104px;height:auto;
+  border:3px solid #d8e2ec;border-radius:18px;background:#fff;
+  font-family:var(--qfont);
+  font-size:20px;font-weight:700;color:var(--ink);cursor:pointer;
+  box-shadow:0 4px 0 #d8e2ec;transition:transform .1s;padding:9px 8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.35;
+}
+.opt .os{font-size:22px;line-height:1.3;font-weight:800}
+.opts.k-choose .opt{flex:0 1 calc(50% - 6px);max-width:238px;min-height:74px}
+.opts.k-choose.n3 .opt{flex:0 1 calc(33.33% - 7px);max-width:168px;min-height:82px}
+.opts.k-choose.n3 .opt .os{font-size:18px}
+.opts.k-choose .opt .os{font-size:19px;line-height:1.45;text-align:center;word-break:break-word}
+.opts.k-judge .opt{flex:0 1 calc(50% - 8px);max-width:190px;min-height:88px}
+.opts.k-char .opt,.opts.k-duo .opt{min-height:92px}
+.py{font-family:"Times New Roman",Georgia,"Segoe UI",serif;letter-spacing:.2px}
+.opts.k-duo .opt .os{font-family:"Times New Roman",Georgia,"Segoe UI",serif;font-size:22px;letter-spacing:.3px}
+.opt .on{font-size:12.5px;line-height:1.2;font-weight:800;color:#93a0ad;letter-spacing:0}
+.opt:active{transform:translateY(3px);box-shadow:0 1px 0 #d8e2ec}
+.opt.good{border-color:var(--green);background:#eafaf2;color:var(--green);box-shadow:0 4px 0 #bfe8d3}
+.opt.good .on{color:#22a06b}
+.opt.bad{border-color:#f1c9c4;background:#fdf2f1;color:#c6a5a1;box-shadow:none}
+.opt.bad .on{color:#c6a5a1}
+.opt[disabled]{cursor:not-allowed}
+.opt[disabled]:not(.good):not(.bad){opacity:.45;box-shadow:none}
+.opttip{text-align:center;font-size:15px;color:#93a0ad;margin-top:10px;font-weight:700}
+.opttip:empty{display:none}
+.grouplabel{text-align:center;font-size:13.5px;color:#aab5c0;font-weight:800;margin-top:14px;letter-spacing:1.5px}
+.blank{
+  display:inline-block;min-width:1.72em;height:1.22em;
+  border-bottom:2.5px solid #c8b49a;background:#fbf4e6;border-radius:3px;
+  vertical-align:-0.16em;margin:0 3px;
+}
+.blank.active{border-bottom-color:#d9483b;background:#fff3e0}
+.blank.mark{border-bottom-color:var(--red);background:#fdeceb}
+.blank.inbr{min-width:1.15em}
+.skipbar{text-align:center;margin-top:14px}
+.skipbtn{
+  display:inline-block;border:2px dashed #c9d3de;border-radius:14px;background:#fbfcfe;
+  padding:8px 16px;font-size:14.5px;font-weight:800;color:#93a0ad;cursor:pointer;
+  font-family:inherit;line-height:1.4;
+}
+.skipbtn:active{background:#f1f5f9;color:#6b7785}
+.skiphint{font-size:12.5px;color:#b3bcc7;font-weight:700;margin-top:6px}
+.nextbtn{
+  display:block;width:100%;margin-top:12px;border:none;border-radius:15px;
+  background:var(--main);color:#fff;font-family:inherit;font-size:16.5px;font-weight:800;
+  padding:12px 0;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.18);
+}
+.nextbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.fb{border-radius:18px;padding:13px 14px;font-size:16.5px;line-height:1.65;font-weight:700;margin-top:14px}
+.fb.ok{background:#eafaf2;color:#16794f;border:2px solid #bfe8d3}
+.fb.no{background:#fdf2f1;color:#b02b1e;border:2px solid #f1c9c4}
+.fb.skip{background:#fff8e6;color:#a97214;border:2px solid #f2ddb0}
+.fb.skip .row b{color:#a97214}
+.fb .row{display:block;margin-top:7px;font-weight:600;font-size:15.5px;color:#4a5560;line-height:1.7}
+.fb .row b{color:#b02b1e}
+.fb.ok .row b{color:#16794f}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.center{text-align:center;padding:26px 16px}
+.big{font-size:29px;font-weight:900;margin:8px 0}
+.emo{font-size:64px;line-height:1}
+.stat{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:16px 0}
+.stat div{background:var(--soft);border-radius:14px;padding:9px 13px;font-size:15px;font-weight:700}
+.btn{
+  border:0;border-radius:22px;padding:15px 30px;font-size:19.5px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,#3aa0ff,var(--main));cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.22);
+}
+.btn:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.22)}
+.pop{animation:pop .5s}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.wronglist{text-align:left}
+.wronglist li{background:#fff8f7;border-left:7px solid #eeb0a8;border-radius:12px;padding:10px 12px;margin-bottom:11px;font-family:var(--qfont);font-size:17px;line-height:1.85}
+.wronglist b{color:#b02b1e}
+.wsent{background:#fff;border:2px solid #f3e0dd;border-radius:11px;padding:9px 10px;
+  font-family:var(--qfont);font-size:20px;line-height:2.05;margin-bottom:7px;text-align:left}
+.wrow{margin-top:5px;font-size:15.5px;line-height:1.8;color:#4a5560;font-weight:600}
+.fly{position:fixed;top:-40px;font-size:30px;pointer-events:none;animation:fall 1.6s linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ====================== 题库（由生成器注入，全部取自真实资料 + 课本核验） ====================== */
+const BANK = {"1": [{"kind": "duo", "cat": "多音字", "t": "弟弟{0}装成超人，把大家逗得哈哈大笑。", "fixes": [{"opts": [["jià", "jià"], ["jiǎ", "jiǎ"]], "ans": 1, "why": "「假」在这里读 jiǎ（假装、不真实）。", "bad": {"jià": "这句话里「假」读 jiǎ（假装、不真实），不是“jià”这个音。"}}], "src": "积累卡·一单元", "tar": "假"}, {"kind": "duo", "cat": "多音字", "t": "秋风吹过，叶子轻轻{0}落下来。", "fixes": [{"opts": [["dì", "dì"], ["de", "de"]], "ans": 1, "why": "「地」在这里读 de（结构助词，轻读）。", "bad": {"dì": "这句话里「地」读 de（结构助词，轻读），不是“dì”这个音。"}}], "src": "积累卡·二单元", "tar": "地"}, {"kind": "duo", "cat": "多音字", "t": "猎人开枪，一下子打{0}了目标。", "fixes": [{"opts": [["zhōng", "zhōng"], ["zhòng", "zhòng"]], "ans": 1, "why": "「中」在这里读 zhòng（正对上、受到）。", "bad": {"zhōng": "这句话里「中」读 zhòng（正对上、受到），不是“zhōng”这个音。"}}], "src": "积累卡·三单元", "tar": "中"}, {"kind": "duo", "cat": "多音字", "t": "石{0}转呀转，麦子变成了白面粉。", "fixes": [{"opts": [["mò", "mò"], ["mó", "mó"]], "ans": 0, "why": "「磨」在这里读 mò（把粮食弄碎的工具）。", "bad": {"mó": "这句话里「磨」读 mò（把粮食弄碎的工具），不是“mó”这个音。"}}], "src": "积累卡·二单元", "tar": "磨"}, {"kind": "duo", "cat": "多音字", "t": "小兔子上山{0}水，准备煮汤。", "fixes": [{"opts": [["tiāo", "tiāo"], ["tiǎo", "tiǎo"]], "ans": 0, "why": "「挑」在这里读 tiāo（用肩担、挑选）。", "bad": {"tiǎo": "这句话里「挑」读 tiāo（用肩担、挑选），不是“tiǎo”这个音。"}}], "src": "积累卡·一单元", "tar": "挑"}, {"kind": "duo", "cat": "多音字", "t": "损坏公物，要受到{0}罚。", "fixes": [{"opts": [["chù", "chù"], ["chǔ", "chǔ"]], "ans": 1, "why": "「处」在这里读 chǔ（处理、处分）。", "bad": {"chù": "这句话里「处」读 chǔ（处理、处分），不是“chù”这个音。"}}], "src": "积累卡·四单元", "tar": "处"}, {"kind": "duo", "cat": "多音字", "t": "夏天热了，奶奶拿蒲叶{0}风。", "fixes": [{"opts": [["shān", "shān"], ["shàn", "shàn"]], "ans": 0, "why": "「扇」在这里读 shān（摇动生风）。", "bad": {"shàn": "这句话里「扇」读 shān（摇动生风），不是“shàn”这个音。"}}], "src": "积累卡·二单元", "tar": "扇"}, {"kind": "duo", "cat": "多音字", "t": "妈妈连夜把衣服{0}好，针脚很密。", "fixes": [{"opts": [["féng", "féng"], ["fèng", "fèng"]], "ans": 0, "why": "「缝」在这里读 féng（用针线连起来）。", "bad": {"fèng": "这句话里「缝」读 féng（用针线连起来），不是“fèng”这个音。"}}], "src": "积累卡·三单元", "tar": "缝"}, {"kind": "duo", "cat": "多音字", "t": "国庆放七{0}，全家去旅行。", "fixes": [{"opts": [["jià", "jià"], ["jiǎ", "jiǎ"]], "ans": 0, "why": "「假」在这里读 jià（假期、休假日）。", "bad": {"jiǎ": "这句话里「假」读 jià（假期、休假日），不是“jiǎ”这个音。"}}], "src": "积累卡·四单元", "tar": "假"}], "2": [{"kind": "duo", "cat": "多音字", "t": "妹妹紧{0}着妈妈，不肯松手。", "fixes": [{"opts": [["ái", "ái"], ["āi", "āi"]], "ans": 1, "why": "「挨」在这里读 āi（靠近、紧接着）。", "bad": {"ái": "这句话里「挨」读 āi（靠近、紧接着），不是“ái”这个音。"}}], "src": "积累卡·一单元", "tar": "挨"}, {"kind": "duo", "cat": "多音字", "t": "老屋年岁大了，眼看就要{0}下。", "fixes": [{"opts": [["dào", "dào"], ["dǎo", "dǎo"]], "ans": 1, "why": "「倒」在这里读 dǎo（竖立的东西横下来）。", "bad": {"dào": "这句话里「倒」读 dǎo（竖立的东西横下来），不是“dào”这个音。"}}], "src": "积累卡·三单元", "tar": "倒"}, {"kind": "duo", "cat": "多音字", "t": "操场边上围了一{0}栅栏。", "fixes": [{"opts": [["quān", "quān"], ["juàn", "juàn"]], "ans": 0, "why": "「圈」在这里读 quān（环形、圆圈）。", "bad": {"juàn": "这句话里「圈」读 quān（环形、圆圈），不是“juàn”这个音。"}}], "src": "积累卡·一单元", "tar": "圈"}, {"kind": "duo", "cat": "多音字", "t": "这{0}窗户一推开，凉风就进来了。", "fixes": [{"opts": [["shàn", "shàn"], ["shān", "shān"]], "ans": 0, "why": "「扇」在这里读 shàn（量词，用于门窗）。", "bad": {"shān": "这句话里「扇」读 shàn（量词，用于门窗），不是“shān”这个音。"}}], "src": "积累卡·二单元", "tar": "扇"}, {"kind": "duo", "cat": "多音字", "t": "光荣加入{0}先队，他可神气了。", "fixes": [{"opts": [["shǎo", "shǎo"], ["shào", "shào"]], "ans": 1, "why": "「少」在这里读 shào（年纪轻）。", "bad": {"shǎo": "这句话里「少」读 shào（年纪轻），不是“shǎo”这个音。"}}], "src": "积累卡·四单元", "tar": "少"}, {"kind": "duo", "cat": "多音字", "t": "铁杵{0}成针，靠的是耐心。", "fixes": [{"opts": [["mó", "mó"], ["mò", "mò"]], "ans": 0, "why": "「磨」在这里读 mó（摩擦使光滑）。", "bad": {"mò": "这句话里「磨」读 mó（摩擦使光滑），不是“mò”这个音。"}}], "src": "积累卡·二单元", "tar": "磨"}, {"kind": "duo", "cat": "多音字", "t": "小猫蜷在沙发上睡{0}，一动不动。", "fixes": [{"opts": [["jiào", "jiào"], ["jué", "jué"]], "ans": 0, "why": "「觉」在这里读 jiào（睡眠）。", "bad": {"jué": "这句话里「觉」读 jiào（睡眠），不是“jué”这个音。"}}], "src": "积累卡·一单元", "tar": "觉"}, {"kind": "duo", "cat": "多音字", "t": "弟弟对恐龙{0}奇极了。", "fixes": [{"opts": [["hǎo", "hǎo"], ["hào", "hào"]], "ans": 1, "why": "「好」在这里读 hào（喜爱、感兴趣）。", "bad": {"hǎo": "这句话里「好」读 hào（喜爱、感兴趣），不是“hǎo”这个音。"}}], "src": "积累卡·一单元", "tar": "好"}, {"kind": "duo", "cat": "多音字", "t": "同学们见了老师主动问{0}。", "fixes": [{"opts": [["hào", "hào"], ["hǎo", "hǎo"]], "ans": 1, "why": "「好」在这里读 hǎo（友好、问好）。", "bad": {"hào": "这句话里「好」读 hǎo（友好、问好），不是“hào”这个音。"}}], "src": "积累卡·一单元", "tar": "好"}], "3": [{"kind": "duo", "cat": "多音字", "t": "大水{0}刷而下，卷走了枯叶。", "fixes": [{"opts": [["chōng", "chōng"], ["chòng", "chòng"]], "ans": 0, "why": "「冲」在这里读 chōng（水流撞击）。", "bad": {"chòng": "这句话里「冲」读 chōng（水流撞击），不是“chòng”这个音。"}}], "src": "积累卡·四单元", "tar": "冲"}, {"kind": "duo", "cat": "多音字", "t": "弟弟摔了一跤，小腿{0}头磕得生疼。", "fixes": [{"opts": [["gū", "gū"], ["gǔ", "gǔ"]], "ans": 1, "why": "「骨」在这里读 gǔ（骨头）。", "bad": {"gū": "这句话里「骨」读 gǔ（骨头），不是“gū”这个音。"}}], "src": "积累卡·四单元", "tar": "骨"}, {"kind": "duo", "cat": "多音字", "t": "他饿极了，把饭一口口吞{0}下。", "fixes": [{"opts": [["yān", "yān"], ["yè", "yè"], ["yàn", "yàn"]], "ans": 2, "why": "「咽」在这里读 yàn（使嘴里的东西下去）。", "bad": {"yān": "这句话里「咽」读 yàn（使嘴里的东西下去），不是“yān”这个音。", "yè": "这句话里「咽」读 yàn（使嘴里的东西下去），不是“yè”这个音。"}}], "src": "积累卡·四单元", "tar": "咽"}, {"kind": "duo", "cat": "多音字", "t": "爷爷在乡下{0}书，一站就是三十年。", "fixes": [{"opts": [["jiāo", "jiāo"], ["jiào", "jiào"]], "ans": 0, "why": "「教」在这里读 jiāo（把知识传给别人）。", "bad": {"jiào": "这句话里「教」读 jiāo（把知识传给别人），不是“jiào”这个音。"}}], "src": "积累卡·一单元", "tar": "教"}, {"kind": "duo", "cat": "多音字", "t": "这条路又弯又{0}，小车开不进去。", "fixes": [{"opts": [["qǔ", "qǔ"], ["qū", "qū"]], "ans": 1, "why": "「曲」在这里读 qū（弯曲、不直）。", "bad": {"qǔ": "这句话里「曲」读 qū（弯曲、不直），不是“qǔ”这个音。"}}], "src": "积累卡·二单元", "tar": "曲"}, {"kind": "duo", "cat": "多音字", "t": "哥哥坐在钢琴前{0}奏一曲。", "fixes": [{"opts": [["tán", "tán"], ["dàn", "dàn"]], "ans": 0, "why": "「弹」在这里读 tán（用手敲奏乐器）。", "bad": {"dàn": "这句话里「弹」读 tán（用手敲奏乐器），不是“dàn”这个音。"}}], "src": "积累卡·三单元", "tar": "弹"}, {"kind": "duo", "cat": "多音字", "t": "我们{0}该爱护身边的小动物。", "fixes": [{"opts": [["yīng", "yīng"], ["yìng", "yìng"]], "ans": 0, "why": "「应」在这里读 yīng（应当、应该）。", "bad": {"yìng": "这句话里「应」读 yīng（应当、应该），不是“yìng”这个音。"}}], "src": "积累卡·四单元", "tar": "应"}, {"kind": "duo", "cat": "多音字", "t": "“这本书是你的{0}？”他小声问。", "fixes": [{"opts": [["ma", "ma"], ["má", "má"]], "ans": 0, "why": "「吗」在这里读 ma（句末疑问语气词）。", "bad": {"má": "这句话里「吗」读 ma（句末疑问语气词），不是“má”这个音。"}}], "src": "积累卡·三单元", "tar": "吗"}], "4": [{"kind": "duo", "cat": "多音字", "t": "春节里孩子们情不自{0}地放鞭炮。", "fixes": [{"opts": [["jīn", "jīn"], ["jìn", "jìn"]], "ans": 0, "why": "「禁」在这里读 jīn（受得住）。", "bad": {"jìn": "这句话里「禁」读 jīn（受得住），不是“jìn”这个音。"}}], "src": "积累卡·四单元", "tar": "禁"}, {"kind": "duo", "cat": "多音字", "t": "这节{0}室干净又明亮。", "fixes": [{"opts": [["jiào", "jiào"], ["jiāo", "jiāo"]], "ans": 0, "why": "「教」在这里读 jiào（学校里上课的房间）。", "bad": {"jiāo": "这句话里「教」读 jiào（学校里上课的房间），不是“jiāo”这个音。"}}], "src": "积累卡·一单元", "tar": "教"}, {"kind": "duo", "cat": "多音字", "t": "出门前，妹妹把书包{0}在肩上。", "fixes": [{"opts": [["bèi", "bèi"], ["bēi", "bēi"]], "ans": 1, "why": "「背」在这里读 bēi（用脊背驮着）。", "bad": {"bèi": "这句话里「背」读 bēi（用脊背驮着），不是“bèi”这个音。"}}], "src": "积累卡·一单元", "tar": "背"}, {"kind": "duo", "cat": "多音字", "t": "这首古诗，他已经会默{0}了。", "fixes": [{"opts": [["bēi", "bēi"], ["bèi", "bèi"]], "ans": 1, "why": "「背」在这里读 bèi（凭记忆读出）。", "bad": {"bēi": "这句话里「背」读 bèi（凭记忆读出），不是“bēi”这个音。"}}], "src": "积累卡·一单元", "tar": "背"}, {"kind": "duo", "cat": "多音字", "t": "金黄的落叶{0}满了水泥道。", "fixes": [{"opts": [["pū", "pū"], ["pù", "pù"]], "ans": 0, "why": "「铺」在这里读 pū（把东西展开摊平）。", "bad": {"pù": "这句话里「铺」读 pū（把东西展开摊平），不是“pù”这个音。"}}], "src": "积累卡·二单元", "tar": "铺"}, {"kind": "duo", "cat": "多音字", "t": "小红低声{0}应：“我愿意帮你。”", "fixes": [{"opts": [["dá", "dá"], ["dā", "dā"]], "ans": 1, "why": "「答」在这里读 dā（回话、应声）。", "bad": {"dá": "这句话里「答」读 dā（回话、应声），不是“dá”这个音。"}}], "src": "积累卡·四单元", "tar": "答"}, {"kind": "duo", "cat": "多音字", "t": "鞋带松了，他弯腰把鞋带{0}紧。", "fixes": [{"opts": [["jì", "jì"], ["xì", "xì"]], "ans": 0, "why": "「系」在这里读 jì（打结、拴）。", "bad": {"xì": "这句话里「系」读 jì（打结、拴），不是“xì”这个音。"}}], "src": "积累卡·四单元", "tar": "系"}, {"kind": "duo", "cat": "多音字", "t": "羊{0}里关着十几只小羊。", "fixes": [{"opts": [["juàn", "juàn"], ["quān", "quān"]], "ans": 0, "why": "「圈」在这里读 juàn（养家畜的栅栏）。", "bad": {"quān": "这句话里「圈」读 juàn（养家畜的栅栏），不是“quān”这个音。"}}], "src": "积累卡·一单元", "tar": "圈"}]};
+const CONFIG = {"title": "多音字 · 闯关小达人", "color": "#1f6fb2", "badge": "多音字 · 闯关", "totalTip": "共 34 题", "introEmoji": "🔤", "introBig": "多音字闯关 · 开始", "finishTitle": "四个单元的多音字，全部闯过 ⭐⭐⭐⭐", "levels": [{"n": 1, "name": "第一关 · 一星", "stars": "⭐", "emoji": "🌱", "color": "#22a06b", "tip": "一字多音 · 生活常用字"}, {"n": 2, "name": "第二关 · 二星", "stars": "⭐⭐", "emoji": "🚀", "color": "#1f6fb2", "tip": "结合语境，定准读音"}, {"n": 3, "name": "第三关 · 三星", "stars": "⭐⭐⭐", "emoji": "👑", "color": "#ef8f1e", "tip": "形近音近，仔细分辨"}, {"n": 4, "name": "第四关 · 四星", "stars": "⭐⭐⭐⭐", "emoji": "🏆", "color": "#a8549a", "tip": "四个单元高频多音字 · 综合练"}, {"n": 5, "name": "回炉关 · 再练一遍", "stars": "🔁", "emoji": "🔥", "color": "#c2622f", "tip": "把跳过的重新做一遍 —— 不看答案"}], "cats": [["多音字", "多音字"]], "kindlabel": {"duo": "正确读音", "char": "选字写对", "judge": "判断对错", "choose": "正确选项"}, "rules_html": "<div class=\"std\">一个字有两个或更多读音，叫<b>多音字</b>。<br>读什么音，要看它在<b>词语里的意思</b>。<br>先把字读准，再写对！</div>", "song_html": "<div class=\"song\">一字多音要看意，<br>语境当中定读音；<br>读准音来写对字，<br>多音字儿难不倒你。</div>", "intro_html": "<b>①</b> 句中<b>橙色高亮</b>的字是多音字，点它<b>正确的读音</b>。<br><b>②</b> 同一个字在不同词里读音不同（如「假」 jiǎ 假装／jià 放假）。<br><b>③</b> 选错了会告诉你<b>为什么不对</b>，看清楚再选。<br><b>④</b> 不会就点「⏭ 跳过」，先看答案，最后还有「🔁 回炉关」。<br><b>⑤</b> 选项位置<b>每次打乱</b>，不能靠记位置蒙对。", "perLevel": 9};
+const RULES_HTML = `<div class="std">一个字有两个或更多读音，叫<b>多音字</b>。<br>读什么音，要看它在<b>词语里的意思</b>。<br>先把字读准，再写对！</div>`;
+const SONG_HTML = `<div class="song">一字多音要看意，<br>语境当中定读音；<br>读准音来写对字，<br>多音字儿难不倒你。</div>`;
+const INTRO_HTML = `<b>①</b> 句中<b>橙色高亮</b>的字是多音字，点它<b>正确的读音</b>。<br><b>②</b> 同一个字在不同词里读音不同（如「假」 jiǎ 假装／jià 放假）。<br><b>③</b> 选错了会告诉你<b>为什么不对</b>，看清楚再选。<br><b>④</b> 不会就点「⏭ 跳过」，先看答案，最后还有「🔁 回炉关」。<br><b>⑤</b> 选项位置<b>每次打乱</b>，不能靠记位置蒙对。`;
+const KINDLABEL = {"duo": "正确读音", "char": "选字写对", "judge": "判断对错", "choose": "正确选项"};
+
+/* ====================== 常量 ====================== */
+const PER_LEVEL = CONFIG.perLevel || 5;
+const LAST_LEVEL = CONFIG.levels.length;   // 含回炉关
+const TYPES = CONFIG.cats || [];
+function typeName(t){ const x = TYPES.find(y => y[0]===t); return x ? x[1] : '题'; }
+
+/* ====================== 工具 ====================== */
+const app = document.getElementById('app');
+let muted = false, audioCtx = null;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; };
+function beep(ok){
+  if (muted) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination); o.type='sine';
+    if (ok){ o.frequency.setValueAtTime(660,t); o.frequency.setValueAtTime(920,t+0.11); }
+    else  { o.frequency.setValueAtTime(320,t); o.frequency.setValueAtTime(210,t+0.14); }
+    g.gain.setValueAtTime(0.0001,t); g.gain.setValueAtTime(0.15,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.36);
+    o.start(t); o.stop(t+0.4);
+  }catch(e){}
+}
+function flyStars(n){
+  for (let i=0;i<n;i++){
+    const s=document.createElement('div'); s.className='fly'; s.textContent='⭐';
+    s.style.left=(Math.random()*88+6)+'vw'; s.style.animationDelay=(Math.random()*0.7)+'s';
+    document.body.appendChild(s); setTimeout(()=>s.remove(),2500);
+  }
+}
+function splitQ(t){
+  // {0} 与题干里的「（　　）」括号都视作空位：答完/看答案时能把答案填进括号里
+  const out=[]; const re=/\{([0-9])\}|（([ \u3000]*)）/g; let last=0,m;
+  while((m=re.exec(t))!==null){
+    if(m.index>last) out.push({type:'text',v:t.slice(last,m.index)});
+    out.push({type:'blank', i:m[1]!==undefined?+m[1]:0, br:m[2]!==undefined});
+    last=m.index+m[0].length;
+  }
+  if(last<t.length) out.push({type:'text',v:t.slice(last)});
+  return out;
+}
+function hasBlank(t){ return splitQ(t).some(s=>s.type==='blank'); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const NO_HEAD = '。，、；：？！）］｝〉》」』】%‰℃';
+
+/* 题干渲染（逐字；选字＝空＋绿字；多音字＝高亮字＋读音；判断/选择＝纯文本） */
+function renderSentence(q, answers, bi, markBi){
+  const items=[];
+  splitQ(q.t).forEach(sg=>{
+    if(sg.type==='blank'){
+      const a = answers ? answers[0] : null;
+      const wrap = h => sg.br ? '（'+h+'）' : h;
+      if(q.kind==='duo'){
+        let cls='tar'; if(bi===0) cls+=' active'; if(markBi===0) cls+=' mark';
+        let h='<span class="'+cls+'">'+esc(q.tar)+'</span>';
+        if(a){ h += '<span class="py '+(a.right?'fixok':'fixbad')+'">'+esc(a.f)+'</span>'; }
+        items.push({blank:true,c:'',h:wrap(h)}); return;
+      }
+      // char / choose / judge：空位
+      if(a){
+        items.push({blank:true,c:'',h:wrap('<span class="'+(a.right?'fixok':'fixbad')+'">'+esc(a.f)+'</span>')}); return;
+      }
+      let cls='blank'+(sg.br?' inbr':''); if(bi===0) cls+=' active'; if(markBi===0) cls+=' mark';
+      items.push({blank:true,c:'',h:wrap('<span class="'+cls+'"></span>')}); return;
+    }
+    for(const ch of sg.v) items.push({blank:false,c:ch,h:esc(ch)});
+  });
+  const n=items.length, same=new Array(n).fill(false);
+  for(let k=0;k<n;k++){
+    if(k>0 && (items[k].blank || NO_HEAD.indexOf(items[k].c)>=0)) same[k-1]=true;
+  }
+  let html='',buf='',cnt=0;
+  for(let k=0;k<n;k++){
+    buf+=items[k].h; cnt++;
+    if(k+1<n && same[k]) continue;
+    html += (cnt>1)?'<span class="glue">'+buf+'</span>':buf;
+    buf=''; cnt=0;
+  }
+  return html;
+}
+function correctAnswers(q){
+  const f=q.fixes[0];
+  return [{f:f.opts[f.ans][1], right:true}];
+}
+/* 出题：每关每类各至少 1 题 */
+let lastIds=[];
+function pick(level){
+  const pool = BANK[level].map((q,idx)=>{ const o=q; o.lv=level; o.id=level+'-'+idx; return o; });
+  const fresh = shuffle(pool.filter(q=>lastIds.indexOf(q.id)<0));
+  const rest  = shuffle(pool.filter(q=>lastIds.indexOf(q.id)>=0));
+  const picked=[];
+  const types=[...new Set(fresh.map(q=>q.cat))];
+  types.forEach(tp=>{ const one=fresh.filter(q=>q.cat===tp)[0]; if(one&&picked.indexOf(one)<0) picked.push(one); });
+  fresh.forEach(q=>{ if(picked.length<PER_LEVEL && picked.indexOf(q)<0) picked.push(q); });
+  rest.forEach(q=>{ if(picked.length<PER_LEVEL && picked.indexOf(q)<0) picked.push(q); });
+  return shuffle(picked).slice(0,PER_LEVEL);
+}
+/* 状态 */
+let S=null;
+function newGame(){
+  if(S && S.round && S.round.length) lastIds = S.round.slice();
+  S={ level:1, queue:[], qi:0, bi:0, answers:[], wrong:0, wrongLog:[], skipLog:[], round:[],
+      skipping:false, reviewSee:0, start:Date.now(), stage:'intro' };
+  S.queue=pick(1); S.round=S.queue.map(q=>q.id); render();
+}
+/* 渲染 */
+function render(){
+  if(S.stage==='intro'){ renderIntro(); return; }
+  const L=CONFIG.levels[S.level-1]; const q=S.queue[S.qi]; const n=q.fixes.length;
+  const fi=q.fixes[0]; S.hot=q.cat; const total=S.queue.length;
+  let html='<div class="topbar"><div class="badge">'
+    +'<span class="lv">'+L.name+'</span><span class="st">'+L.stars+'</span>'
+    +'<span class="pg">'+L.emoji+' 第 '+(S.qi+1)+'/'+total+'</span></div>'
+    +'<button class="iconbtn" id="mute">'+(muted?'🔇':'🔊')+'</button></div>';
+  html += RULES_HTML;
+  const label = KINDLABEL[q.kind] || '选一选';
+  const tip = (q.kind==='duo')
+     ? '句中<b>橙色高亮</b>的那个字，应该读什么音？点下面的读音。'
+     : (q.kind==='judge')
+     ? '这句话说得<b>对不对</b>？点「对」或「错」。'
+     : (q.kind==='choose')
+     ? '读读这句话，选出<b>正确的一项</b>。'
+     : '句子里<b>空着</b>的地方，应该填哪个字 / 选哪一项？';
+  html+='<div class="card"><div class="qtip">'+tip+'</div><div class="dots">';
+  for(let i=0;i<total;i++) html+='<span class="dot '+(i<S.qi?'ok':(i===S.qi?'now':''))+'"></span>';
+  html+='</div><div class="sentence" id="sen">'+renderSentence(q,S.answers,S.bi,-1)+'</div>'
+    +'<div class="grouplabel">'+label+'</div><div class="opts k-'+q.kind+' n'+fi.opts.length+'" id="opts">';
+  const optOrder = shuffle(fi.opts.map((_, i) => i));
+  optOrder.forEach((idx)=>{
+    const o = fi.opts[idx];
+    const bad = S.wrongOpts && S.wrongOpts.indexOf(idx)>-1;
+    html+='<button class="opt'+(bad?' bad':'')+'" data-idx="'+idx+'"'+(bad?' disabled':'')+'>'
+      +'<span class="os">'+esc(o[0])+'</span></button>';
+  });
+  const skipTxt=(S.stage==='review')?'👀 再看一遍答案':'⏭ 跳过这题，直接看答案';
+  const skipHint=(S.stage==='review')?'别急，想不出来就看一眼，结束页还会再列出来':'不会做也没关系，先看看正确答案，最后还有一关「🔁 回炉关」让你不看答案再做一遍';
+  html+='</div><div class="opttip"></div>'
+    +'<div id="fb"></div>'
+    +'<div class="skipbar"><button class="skipbtn" id="skipbtn">'+skipTxt+'</button>'
+    +'<div class="skiphint">'+skipHint+'</div></div></div>';
+  app.innerHTML=html;
+  document.getElementById('mute').onclick=()=>{ muted=!muted; render(); };
+  document.getElementById('skipbtn').onclick=skipQuestion;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.onclick=()=>choose(+b.dataset.idx,b); });
+}
+/* ⏭ 跳过 */
+function skipQuestion(){
+  if(S.skipping) return;
+  S.skipping=true;
+  const q=S.queue[S.qi];
+  if(S.stage==='review') S.reviewSee=(S.reviewSee||0)+1;
+  else if(!S.skipLog.some(x=>x.id===q.id)) S.skipLog.push({id:q.id,q:q,src:q.src,lv:S.level});
+  const a=correctAnswers(q); S.answers=a; S.bi=-1; S.wrongOpts=null; S.hot=null;
+  const sen=document.getElementById('sen'); if(sen){ sen.innerHTML=renderSentence(q,a,-1,-1); }
+  const correctIdx=q.fixes[0].ans;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{
+    b.disabled=true;
+    if(+b.dataset.idx===correctIdx) b.classList.add('good');   // 看答案时把正确选项标绿
+  });
+  const tip=document.querySelectorAll('.opttip')[0];
+  const pos = hasBlank(q.t) ? '上面' : '下面';
+  if(tip) tip.innerHTML=(S.stage==='review'?'这一题先看答案':'这一题先跳过')+'，正确答案在'+pos+'（绿色就是答案）';
+  document.querySelectorAll('.skipbar')[0].style.display='none';
+  const fb=document.getElementById('fb');
+  const good=fi_good(q);
+  fb.innerHTML='<div class="fb skip">'
+    +(S.stage==='review'?'👀 再看一遍：正确答案在'+pos:'⏭ 跳过这题，正确答案在'+pos)
+    +'<span class="row">正确答案：<b class="'+(q.kind==='duo'?'py':'')+'" style="color:#16794f">'+esc(good[0])+'</b>　'+q.fixes[0].why+'</span>'
+    +(q.src?'<span class="row">📖 '+esc(q.src)+'</span>':'')
+    +'<button class="nextbtn" id="skipnext">看懂了，下一题 →</button>'
+    +'<span class="row" style="text-align:center;color:#b3bcc7;font-size:14px">不点也没关系，几秒后自己往下走</span></div>';
+  document.getElementById('skipnext').onclick=skipDone;
+  S.skipTimer=setTimeout(skipDone,3800);
+}
+function fi_good(q){ const f=q.fixes[0]; return f.opts[f.ans]; }
+function skipDone(){
+  if(!S.skipping) return;
+  S.skipping=false;
+  if(S.skipTimer){ clearTimeout(S.skipTimer); S.skipTimer=null; }
+  nextQuestion();
+}
+/* 答题 */
+function choose(idx, btn){
+  const q=S.queue[S.qi]; const fi=q.fixes[0];
+  const right=fi.ans; const fb=document.getElementById('fb');
+  if(idx===right){
+    const good=fi.opts[right];
+    S.answers[0]={f:good[1], right:true};
+    S.wrongOpts=null; S.hot=null;
+    beep(true); btn.classList.add('good');
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.disabled=true; });
+    fb.innerHTML='<div class="fb ok">✅ 答对啦！<span class="row">'+esc(good[0])+'　'+fi.why+'</span>'
+      +'<span class="row">马上进入下一题……</span></div>';
+    setTimeout(nextQuestion,1000);
+  } else {
+    S.wrong+=1;
+    S.wrongOpts=(S.wrongOpts||[]).concat(idx); S.hot=q.cat;
+    const badTxt=(fi.bad && fi.bad[fi.opts[idx][0]]) || '再读读这句，看哪里不对。';
+    S.wrongLog.push({q:q, picked:fi.opts[idx][0], ans:fi.opts[right][0], why:fi.why, bad:badTxt, lv:S.level});
+    beep(false);
+    btn.classList.add('bad','shake'); btn.disabled=true;
+    const sen=document.getElementById('sen'); if(sen) sen.classList.add('shake');
+    fb.innerHTML='<div class="fb no">❌ 不对，看清下面的话，再选一次'
+      +'<span class="row">你选的是：<b>'+esc(fi.opts[idx][0])+'</b>　不对。</span>'
+      +'<span class="row">为什么不对：<b>'+esc(badTxt)+'</b></span>'
+      +'<span class="row">应该选：<b style="color:#16794f">'+esc(fi.opts[right][0])+'</b>　'+esc(fi.why)+'</span></div>';
+  }
+}
+function nextQuestion(){
+  S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null;
+  if(S.qi+1<S.queue.length){ S.qi+=1; render(); }
+  else levelClear();
+}
+function levelClear(){
+  const L=CONFIG.levels[S.level-1];
+  beep(true); flyStars(12);
+  const reviewing=(S.stage==='review'); const cnt=S.queue.length;
+  let html='<div class="card center pop"><div class="emo">'+L.emoji+'</div>'
+    +'<div class="big">'+L.stars+' '+L.name+(reviewing?' 完成！':' 通关！')+'</div>';
+  const sk = reviewing ? (S.reviewSee||0) : S.skipLog.filter(x=>x.lv===S.level).length;
+  html += sk
+    ? '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 '+cnt+' 题完成，其中 <b style="color:#a97214">'+sk+' 题</b>是看答案过的。</div>'
+    : '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 '+cnt+' 题全部自己做对，太厉害了！</div>';
+  html += '<div class="stat"><div>📌 '+L.tip+'</div></div>';
+  if(S.level<LAST_LEVEL){
+    const NL=CONFIG.levels[S.level];
+    html += '<div style="font-size:17px;font-weight:800;color:'+NL.color+'">马上进入 '+NL.name+' ……</div>';
+  } else if(!reviewing && S.skipLog.length){
+    html += '<div style="font-size:17px;font-weight:800;color:#c2622f">🔥 别急着走 —— 马上进入「回炉关」！</div>'
+      +'<div style="margin-top:10px;font-size:15px;font-weight:700;color:#5b6672;line-height:1.8">'
+      +'刚才你<b style="color:#a97214">跳过 '+S.skipLog.length+' 题</b>，<br>这一关把它们<b>重新排一遍</b>，<b style="color:#c2622f">不看答案</b>，自己做做看！</div>';
+  }
+  app.innerHTML=html+'</div>';
+  setTimeout(advance,1900);
+}
+function advance(){
+  if(S.level<LAST_LEVEL && BANK[S.level+1]){
+    S.level+=1; S.qi=0; S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null;
+    S.queue=pick(S.level); S.round=S.round.concat(S.queue.map(q=>q.id)); render();
+  } else if(S.stage!=='review' && S.skipLog.length){ startReview(); }
+  else finish();
+}
+function startReview(){
+  const seen={};
+  S.queue=S.skipLog.filter(x=>{ if(seen[x.id]) return false; seen[x.id]=1; return true; }).map(x=>x.q);
+  if(!S.queue.length){ finish(); return; }
+  S.stage='review'; S.level=CONFIG.levels.length; S.qi=0; S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null; S.skipping=false; S.reviewSee=0;
+  render();
+}
+/* 结束页 */
+function finish(){
+  const sec=Math.round((Date.now()-S.start)/1000);
+  const mm=String(Math.floor(sec/60)).padStart(2,'0'), ss=String(sec%60).padStart(2,'0');
+  beep(true); flyStars(28);
+  const seen={};
+  // 同一道题即使选错多个选项，也只在错题回顾里列一次（保留第一次的错误选项）
+  const uniq=S.wrongLog.filter(x=>{ if(seen[x.q.t]) return false; seen[x.q.t]=1; return true; });
+  let html='<div class="card center pop"><div class="emo">🏆</div><div class="big">闯关成功！</div>'
+    +'<div style="font-size:17px;font-weight:700;color:#5b6672">'+CONFIG.finishTitle
+    + (S.skipLog.length?'　＋ 🔁 回炉关完成':'')+'</div>'
+    +'<div class="stat"><div>⏱ '+mm+':'+ss+'</div><div>❌ 失误 '+S.wrong+' 次</div><div>📝 改错 '+uniq.length+' 处</div>'
+    + (S.skipLog.length?'<div>⏭ 跳过 '+S.skipLog.length+' 题</div>':'')+'</div>'
+    + SONG_HTML;
+  if(uniq.length){
+    html+='<div class="wronglist" style="margin-top:16px"><div style="font-size:16.5px;font-weight:800;margin-bottom:8px">🔍 错题回顾（共 '+uniq.length+' 处）</div><ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    uniq.forEach(x=>{
+      const a=correctAnswers(x.q); a[0].right=false;
+      html+='<li><div class="wsent">'+renderSentence(x.q,a,-1,0)+'</div>'
+        +'<div class="wrow"><b style="color:#b02b1e">你刚才选的“'+esc(x.picked)+'”不对</b></div>'
+        +'<div class="wrow" style="color:#b02b1e">为什么不对：'+esc(x.bad)+'</div>'
+        +'<div class="wrow"><b style="color:#16794f">这样才对：'+esc(x.ans)+'</b>　'+esc(x.why)+'</div></li>';
+    });
+    html+='</ul></div>';
+  }
+  if(S.skipLog.length){
+    html+='<div class="wronglist" style="margin-top:16px;border-color:#f2ddb0;background:#fffdf7"><div style="font-size:16.5px;font-weight:800;margin-bottom:8px;color:#a97214">⏭ 跳过的题目（共 '+S.skipLog.length+' 题 · 已在 🔥 回炉关重做 · 再读一遍）</div><ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    S.skipLog.forEach(x=>{
+      const a=correctAnswers(x.q);
+      html+='<li><div class="wsent">'+renderSentence(x.q,a,-1,-1)+'</div></li>';
+    });
+    html+='</ul></div>';
+  }
+  html+='<div style="margin-top:20px"><button class="btn" id="again">🔄 再来一遍</button></div>'
+    +'<div style="margin-top:12px;font-size:14.5px;color:#93a0ad;font-weight:700">题目和选项顺序都会重新打乱，适合再练一遍</div></div>';
+  app.innerHTML=html;
+  document.getElementById('again').onclick=()=>{ beep(true); newGame(); };
+}
+/* 首页 */
+function renderIntro(){
+  app.innerHTML='<div class="topbar"><div class="badge"><span class="lv">'+CONFIG.badge+'</span><span class="st">⭐⭐⭐⭐</span>'
+    +'<span class="pg">'+CONFIG.totalTip+'</span></div><button class="iconbtn" id="mute">'+(muted?'🔇':'🔊')+'</button></div>'
+    + RULES_HTML
+    + SONG_HTML
+    +'<div class="card center"><div class="emo">'+CONFIG.introEmoji+'</div><div class="big">'+CONFIG.introBig+'</div>'
+    +'<div style="font-size:16px;color:#5b6672;font-weight:700;line-height:1.85;text-align:left">'+INTRO_HTML+'</div>'
+    +'<div style="margin-top:18px"><button class="btn" id="go">开始闯关</button></div></div>';
+  document.getElementById('mute').onclick=()=>{ muted=!muted; renderIntro(); };
+  document.getElementById('go').onclick=()=>{ beep(true); S.stage='play'; render(); };
+}
+newGame();
+</script>
+</body>
+</html>

@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>提示语加标点 · 闯关小达人</title>
+<style>
+:root{
+  --ink:#2b3440; --blue:#1f6fb2; --green:#22a06b; --red:#d9483b;
+  --orange:#ef8f1e; --purple:#a8549a; --line:#e4ebf2; --soft:#f5f9fc; --gray:#7b8794;
+  /* ★课本字体：统编教材课文正文用楷体，楷体/宋体的中文引号是标准【全角角引号】；
+       黑体（微软雅黑）的引号是"两撇"形，不规范，故题目一律用楷体渲染 */
+  --qfont:"KaiTi","楷体","STKaiti","Kaiti SC","SimSun","宋体","Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Microsoft YaHei","微软雅黑","PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans CJK SC",sans-serif;
+  color:var(--ink);background:linear-gradient(170deg,#e6f4ff 0%,#f2efff 55%,#fff6e5 100%);
+  min-height:100vh;display:flex;justify-content:center;
+  padding:0 10px calc(20px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%;
+}
+/* ★手机竖版为设计基准；电脑上也是 520px 居中竖卡，绝不铺满宽屏 */
+#app{width:100%;max-width:520px;padding-top:12px}
+
+/* ---------- 顶部条 ---------- */
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.badge{
+  flex:1;background:#fff;border-radius:18px;padding:9px 13px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;
+}
+.badge .lv{font-size:15.5px;font-weight:800;color:var(--blue)}
+.badge .st{font-size:14px;letter-spacing:1px}
+.badge .pg{margin-left:auto;font-size:14px;color:var(--gray);font-weight:700}
+.iconbtn{width:46px;height:46px;flex:0 0 46px;border:0;border-radius:16px;background:#fff;font-size:22px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);cursor:pointer}
+.iconbtn:active{transform:scale(.94)}
+
+.card{background:#fff;border-radius:22px;padding:16px 15px;box-shadow:0 8px 24px rgba(43,52,64,.10);margin-bottom:12px}
+
+/* ---------- 规则卡（前/中/后/末 ＋ 第四关加「引号」） ---------- */
+.rules{display:grid;gap:7px;margin-bottom:12px}
+.rc{
+  background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 11px;
+  display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 9px;
+}
+.rc .tag{font-size:13.5px;font-weight:800;color:#fff;border-radius:9px;padding:3px 8px;white-space:nowrap}
+.tag.q{background:#e07b39}.tag.z{background:#2f8fd0}.tag.h{background:#3f9e6c}
+.tag.m{background:#8a6fbf}.tag.y{background:var(--purple)}
+.rc .ar{font-size:15.5px;font-weight:800;color:var(--ink);white-space:nowrap}
+.rc .eg{grid-column:1/-1;font-family:var(--qfont);font-size:15px;color:#8b95a1;line-height:1.6}
+.rc.hot{border-color:var(--orange);background:#fff8ec;box-shadow:0 0 0 3px rgba(239,143,30,.18)}
+
+/* ---------- 标准标点示范条 ---------- */
+.std{
+  background:#fff;border:2px solid #cfe3f5;border-radius:16px;padding:10px 12px;margin-bottom:12px;
+  text-align:center;font-size:14px;font-weight:800;color:#5b6672;line-height:1.9;
+}
+.std .sym{
+  display:inline-block;min-width:38px;font-family:var(--qfont);
+  font-size:30px;font-weight:700;color:var(--ink);
+  background:#f4f8fc;border-radius:8px;margin:0 2px;line-height:1.35;
+}
+.song{
+  /* padding 左右收窄到 10px：保证 320px 小屏上每行口诀也不掉字（16字×17px=272px） */
+  background:#fff7e8;border:2px dashed #f0b96a;border-radius:18px;padding:12px 10px;
+  text-align:center;font-family:var(--qfont);font-size:17px;font-weight:800;color:#a35c11;
+  line-height:1.95;margin-bottom:12px;
+}
+
+/* ---------- 进度点 ---------- */
+.dots{display:flex;gap:7px;justify-content:center;margin:2px 0 12px}
+.dot{width:13px;height:13px;border-radius:50%;background:#dfe6ee}
+.dot.ok{background:var(--green)}
+.dot.now{background:var(--orange);animation:bounce .8s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* ---------- 题干 ---------- */
+.qtip{font-family:var(--qfont);font-size:14.5px;color:var(--gray);font-weight:700;text-align:center;margin-bottom:8px;line-height:1.6}
+.qtip b{color:var(--orange)}
+.sentence{
+  font-family:var(--qfont);
+  font-size:25px;line-height:2;font-weight:600;text-align:left;
+  word-break:normal;line-break:strict;letter-spacing:0;
+}
+/* ★行首禁则（避头尾）：标点／空框与它前面的字粘在一起，换行时绝不被甩到一行开头 */
+.glue{white-space:nowrap}
+/* ★中文全角引号：课本字体（楷体/宋体）＋放大，标准角引号，不会出现"两撇" */
+.qm{font-family:var(--qfont);font-size:1.25em;color:#8b95a1;font-weight:700;letter-spacing:0}
+/* ★行内引号（反馈文字、规则卡标签里出现的 “ ”）也强制课本字体，避免黑体"两撇" */
+.qmm{font-family:var(--qfont);font-size:1.2em;font-weight:800;letter-spacing:0}
+.talk{color:var(--blue)}
+/* ★第四关：整句没有标点可看，提示语只做成灰字（不加括号、不加引号），蓝字就是"说的话" */
+.tsy{color:#8b95a1;font-weight:700}
+.blank{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:42px;height:44px;padding:0 4px;
+  border:3px solid #cfd8e3;border-radius:12px;background:#f8fafc;font-family:var(--qfont);
+  vertical-align:middle;margin:0 2px;color:#c3ccd6;font-size:25px;font-weight:700;
+}
+.blank.filled{border-color:var(--green);background:#eafaf2;color:var(--green)}
+.blank.active{border-color:var(--orange);background:#fff6e8;color:#c98a1c;animation:bounce .9s infinite}
+/* 错题回顾里"你填错的那一个空"：红框标出来 */
+.blank.mark{border-color:#d9483b;background:#fdeceb;color:#b02b1e;box-shadow:0 0 0 3px #fbe0dd}
+/* ★跳过这一句后：整句按正确写法显示，答案框用琥珀色（区别于"自己填对"的绿色） */
+.skipsen .blank.filled{border-color:#e8a723;background:#fff7e6;color:#a97214}
+
+/* ---------- 选项：5 个一行；第四关 7 个 → 5 + 2 居中 ---------- */
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:16px}
+.opt{
+  flex:0 1 calc(20% - 8px);min-width:58px;max-width:104px;height:86px;
+  border:3px solid #d8e2ec;border-radius:18px;background:#fff;
+  font-family:var(--qfont);
+  font-size:35px;font-weight:700;color:var(--ink);cursor:pointer;
+  box-shadow:0 4px 0 #d8e2ec;transition:transform .1s;padding:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+}
+/* ★每个选项都带中文名，孩子不用猜这个符号叫什么 */
+.opt .os{font-family:var(--qfont);font-size:31px;line-height:1;font-weight:800}
+.opt .on{font-size:12px;line-height:1;font-weight:800;color:#93a0ad;letter-spacing:0}
+.opt:active{transform:translateY(3px);box-shadow:0 1px 0 #d8e2ec}
+.opt.good{border-color:var(--green);background:#eafaf2;color:var(--green);box-shadow:0 4px 0 #bfe8d3}
+.opt.good .on{color:#22a06b}
+.opt.bad{border-color:#f1c9c4;background:#fdf2f1;color:#c6a5a1;box-shadow:none}
+.opt.bad .on{color:#c6a5a1}
+.opt[disabled]{cursor:not-allowed}
+/* ★跳过后/答完后剩下的选项要明显"点不动"，不然孩子还在戳 */
+.opt[disabled]:not(.good):not(.bad){opacity:.45;box-shadow:none}
+.opttip{text-align:center;font-size:15px;color:#93a0ad;margin-top:10px;font-weight:700}
+/* ★中文书写规范提示：为什么这几个标点不给你选 */
+.banrule{
+  margin:9px auto 0;max-width:460px;background:#f7f4ff;border:2px dashed #cdbfe8;border-radius:13px;
+  padding:8px 11px;font-size:13.5px;line-height:1.75;color:#6b5b95;font-weight:700;text-align:left;
+}
+.banrule b{color:#a8549a}
+
+/* ★跳过这一句：按钮做得弱一点（灰色小字，放在最下面），孩子不会误把"不会做"当第一选择 */
+.skipbar{text-align:center;margin-top:14px}
+.skipbtn{
+  display:inline-block;border:2px dashed #c9d3de;border-radius:14px;background:#fbfcfe;
+  padding:8px 16px;font-size:14.5px;font-weight:800;color:#93a0ad;cursor:pointer;
+  font-family:inherit;line-height:1.4;
+}
+.skipbtn:active{background:#f1f5f9;color:#6b7785}
+.skiphint{font-size:12.5px;color:#b3bcc7;font-weight:700;margin-top:6px}
+/* 跳过后：看懂了可以自己点着往下走，不用干等 */
+.nextbtn{
+  display:block;width:100%;margin-top:12px;border:none;border-radius:15px;
+  background:#1f6fb2;color:#fff;font-family:inherit;font-size:16.5px;font-weight:800;
+  padding:12px 0;cursor:pointer;box-shadow:0 4px 0 #175a91;
+}
+.nextbtn:active{transform:translateY(2px);box-shadow:0 2px 0 #175a91}
+
+/* ---------- 反馈 ---------- */
+.fb{border-radius:18px;padding:13px 14px;font-size:16.5px;line-height:1.65;font-weight:700;margin-top:14px}
+.fb.ok{background:#eafaf2;color:#16794f;border:2px solid #bfe8d3}
+.fb.no{background:#fdf2f1;color:#b02b1e;border:2px solid #f1c9c4}
+.fb.skip{background:#fff8e6;color:#a97214;border:2px solid #f2ddb0}
+.fb.skip .row b{color:#a97214}
+.fb .row{display:block;margin-top:7px;font-weight:600;font-size:15.5px;color:#4a5560;line-height:1.7}
+.fb .row b{color:#b02b1e}
+.fb.ok .row b{color:#16794f}
+.fb .symbox{height:28px;min-width:28px;font-size:19px}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+/* ---------- 通关 / 结束 ---------- */
+.center{text-align:center;padding:26px 16px}
+.big{font-size:29px;font-weight:900;margin:8px 0}
+.emo{font-size:64px;line-height:1}
+.stat{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:16px 0}
+.stat div{background:var(--soft);border-radius:14px;padding:9px 13px;font-size:15px;font-weight:700}
+.btn{
+  border:0;border-radius:22px;padding:15px 30px;font-size:19.5px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,#3aa0ff,#1f6fb2);cursor:pointer;box-shadow:0 7px 0 #14548a;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 3px 0 #14548a}
+.pop{animation:pop .5s}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+
+.wronglist{text-align:left}
+.wronglist li{background:#fff8f7;border-left:7px solid #eeb0a8;border-radius:12px;padding:10px 12px;margin-bottom:11px;font-family:var(--qfont);font-size:17px;line-height:1.85}
+.wronglist b{color:#b02b1e}
+/* 错句整句（已填好正确标点），红框＝你填错的那处 */
+.wsent{background:#fff;border:2px solid #f3e0dd;border-radius:11px;padding:9px 10px;
+  font-family:var(--qfont);font-size:20px;line-height:2.05;margin-bottom:7px;text-align:left}
+.wsent .blank{min-width:32px;height:32px;font-size:20px;border-width:2px;border-radius:9px;margin:0 1px}
+.wrow{margin-top:5px;font-size:15.5px;line-height:1.8;color:#4a5560;font-weight:600}
+/* ★符号一律"大字块 + 中文名"，不再孤零零一个字符 */
+.symbox{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:32px;height:32px;padding:0 5px;border-radius:9px;
+  font-family:var(--qfont);font-size:21px;font-weight:800;vertical-align:middle;margin-right:4px;
+}
+.symbox.no{background:#fdeceb;color:#b02b1e;border:2px solid #f1c9c4}
+.symbox.yes{background:#eafaf2;color:#16794f;border:2px solid #bfe8d3}
+.symnote{
+  background:#f4f8fc;border:2px dashed #cfd8e3;border-radius:12px;
+  padding:9px 11px;font-family:var(--qfont);font-size:14.5px;line-height:2;color:#5b6672;font-weight:700;
+}
+.symnote i{font-style:normal;font-family:var(--qfont);font-size:19px;font-weight:800;color:var(--ink);margin:0 1px}
+.fly{position:fixed;top:-40px;font-size:30px;pointer-events:none;animation:fall 1.6s linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================================
+   【题库来源】全部取自本工作台已有的纸质／电子真题，不是凭空编题：
+   1) 三上语文资料2026.9/1标点病句专项/三年级提示语训练(1)(2).pdf  —— 20 道整句裸句
+   2) 同上 /提示语标点符号(1).pdf 第5、6页                          —— 16 道 ＋ 分类 10 道
+   3) 同上 /园地三标点符号＋修改病句专项训练.pdf                     —— 4 道
+   4) output/句子专项/第1期_提示语标点/                              —— 教材原句 3 例 ＋ 12 道真题
+   5) 统编版三上 语文园地三 · 词句段运用第①题（课本 p43）教材原句
+
+   ★四关设计
+   第一关 一星：2 个空 · 短句 · 前/中/后混着考（引号已给出）
+   第二关 二星：2~3 个空 · 句子变长 · 问号陷阱
+   第三关 三星：3 个空 · 教材原句 · 长句 · 提示语自带逗号干扰
+   第四关 四星★全能关：整句【一个标点都没有】，所有标点全部自己填，
+          连前引号“ 后引号”都要自己选（冒号后连着两个方框、句末连着两个方框）
+
+   ★★选项经过【中文书写规范】过滤（见下面 bannedOf）：
+          句首不出现 ”，。？！：　｜　句末不出现 “：，
+          后引号前不出现 “”：　｜　引号不挨引号　｜　标点不挨标点
+      —— 给孩子选的每一个标点，都是这个位置真能用上的，绝不误导。
+
+   ★空位类型 k 决定答案 / 解析 / 错因，题库只存句型，口径统一。
+   ========================================================================= */
+const PER_LEVEL = 5;
+const LAST_LEVEL = 4;
+
+/* 选项池：前三关 5 个标点；第四关再加前引号“、后引号” */
+const SYMS_5 = ['：','，','。','？','！'];
+const SYMS_7 = ['“','”','：','，','。','？','！'];
+function symsOf(level){ return level >= 4 ? SYMS_7 : SYMS_5; }
+
+/* =========================================================================
+   ★★ 中文书写规范过滤：某些标点"根本不可能"出现在某些位置 —— 就不给孩子选
+   依据《标点符号用法》(GB/T 15834-2011) ＋ 统编教材实际排版：
+   ① 句首（这个空是整个句子的第一个字）：
+      后引号 ” 、冒号 ：、逗号 ，、句号 。、问号 ？、感叹号 ！ 一律不能出现在句首
+      → 句首只有前引号 “ 能用（前引号是"把话打开"，本来就该在最前面）。
+   ② 句末（这个空是整句的最后一个字）：
+      前引号 “ 、冒号 ：、逗号 ， 不能收尾（冒号后面必须还有内容，逗号表示还要接着说）。
+   ③ 后引号 ” 的前面：不能是前引号 “、后引号 ”、冒号 ：。
+   ④ 前引号 “ 的前面 ／ 后引号 ” 的后面：不能紧挨着另一个引号。
+   ⑤ 标点不挨标点：这个空的前面或后面已经有标点时，不再给句读类标点。
+   ★这样做的目的：孩子看到的每个选项都是"这里真能用"的，绝不被误导。
+   ★安全阀：万一规范把正确答案也滤掉了（不该发生），强制把它加回来。
+   ========================================================================= */
+const BAN_HEAD   = ['”','：','，','。','？','！'];  /* ① 不能出现在句首 */
+const BAN_TAIL   = ['“','：','，'];                 /* ② 不能出现在句末 */
+const BAN_BEFORE_Q2 = ['“','”','：'];               /* ③ 不能出现在后引号前面 */
+const BAN_NEAR_Q = ['“','”'];                       /* ④ 不能紧挨着另一个引号 */
+const PUNCS = ['：','，','。','？','！'];
+
+/* 取这个空"左右紧邻的那个字"：句首＝''，句末＝''，紧挨着另一个空（上下文未知）＝null；
+   ★空位序号不合法（没有这个空）时两个都返回 null，一律不做规范过滤 */
+function neighbors(q, i){
+  const segs = splitQ(q.t);
+  const idx  = segs.findIndex(s => s.type === 'blank' && s.i === i);
+  if (idx < 0) return {prev:null, next:null};
+  let prev = '', next = '';
+  if (idx > 0){
+    const p = segs[idx - 1];
+    prev = (p.type === 'text' && p.v.length) ? p.v.charAt(p.v.length - 1) : null;
+  }
+  if (idx < segs.length - 1){
+    const nx = segs[idx + 1];
+    next = (nx.type === 'text' && nx.v.length) ? nx.v.charAt(0) : null;
+  }
+  return {prev:prev, next:next};
+}
+/* 这个位置上"不能用"的标点清单 */
+function bannedOf(q, i){
+  const c = neighbors(q, i), ban = [];
+  const add = v => { if (ban.indexOf(v) < 0) ban.push(v); };
+  if (c.prev === '') BAN_HEAD.forEach(add);                                  /* ①句首 */
+  if (c.next === '') BAN_TAIL.forEach(add);                                  /* ②句末 */
+  if (c.next === '”') BAN_BEFORE_Q2.forEach(add);                            /* ③后引号前 */
+  if (c.next === '“' || c.prev === '”') BAN_NEAR_Q.forEach(add);             /* ④引号旁 */
+  if (c.prev && PUNCS.indexOf(c.prev) >= 0) PUNCS.forEach(add);              /* ⑤标点挨标点 */
+  if (c.next && PUNCS.indexOf(c.next) >= 0) PUNCS.forEach(add);
+  return ban;
+}
+/* 这个空实际给出的选项（保持“ ” ： ， 。 ？ ！ 固定顺序；正确答案永不被滤掉） */
+function optsOf(q, i, level){
+  const all = symsOf(level), ban = bannedOf(q, i);
+  const ok = all.filter(v => ban.indexOf(v) < 0);
+  const kind = KEYS[q.k[i]];                     /* ★空位序号不合法时不套安全阀 */
+  if (kind && ok.indexOf(kind.a) < 0) ok.push(kind.a);
+  if (!ok.length) return all;
+  return all.filter(v => ok.indexOf(v) >= 0);
+}
+/* 被规范挡掉的那些，给孩子一句看得懂的说明；
+   ★只滤掉 1 个符号时不啰嗦（孩子根本看不到它，不影响判断），滤掉 2 个以上才解释 */
+function banNote(q, i, level){
+  const off = symsOf(level).filter(v => optsOf(q, i, level).indexOf(v) < 0);
+  if (off.length < 2) return '';
+  const c = neighbors(q, i);
+  let where = '';
+  if (c.prev === '')               where = '这个空在<b>句子开头</b>';
+  else if (c.next === '')          where = '这个空在<b>句子末尾</b>';
+  else if (c.next === '”')         where = '这个空<b>紧挨在后引号前面</b>';
+  else if (c.next === '“')         where = '这个空<b>紧挨在前引号前面</b>';
+  else if (c.prev === '”')         where = '这个空<b>紧挨在后引号后面</b>';
+  else                             where = '这个空<b>旁边已经有标点</b>';
+  return '★' + where + '：按中文书写规范，' + off.map(nameOf).join('、') + '不能放在这里，所以不给你选。';
+}
+
+/* ★符号中文名：所有解释文字里，符号一律"符号 ＋ 中文名"同时出现，孩子不用猜 */
+const SYMNAME = {'：':'冒号','，':'逗号','。':'句号','？':'问号','！':'感叹号','“':'前引号','”':'后引号'};
+const SYM_ORDER = ['“','”','：','，','。','？','！'];   /* 固定展示顺序，和选项顺序一致 */
+function nameOf(v){ return SYMNAME[v] || '这个标点'; }
+/* 生成「【符号】＋中文名」大字块；cls = no(红·错的) / yes(绿·对的) */
+function symTag(v, cls){
+  return '<span class="symbox ' + cls + '">' + v + '</span>' + nameOf(v);
+}
+
+/* ---------- 空位类型库：答案 + 解析 + 每个错误选项的错因 ---------- */
+const KEYS = {
+  pre: { a:'：', pos:'前', name:'提示语后面',
+    why:'提示语在最前面，它要引出下面的话，后面用冒号（：）。',
+    bad:{
+      '，':'逗号是“话说到一半”才用的；这里话还没出口，不能用逗号。',
+      '。':'句号表示话说完了；可这里话还没开始说，后面还要引出内容。',
+      '？':'问号是“说的话”里的疑问，要留在引号里面，不能放到提示语后面。',
+      '！':'感叹号是“说的话”的语气，也要留在引号里面。',
+      '“':'★顺序记住：先写冒号，冒号后面才是前引号。这个空填冒号。',
+      '”':'后引号是“话说到这儿为止”用的；这里话刚刚开始说。'}},
+
+  mid1:{ a:'，', pos:'中', name:'前半句末尾',
+    why:'话被提示语分成两半，前半句还没说完，只是停一下，用逗号（，）。',
+    bad:{
+      '：':'提示语在中间时，前半句末尾用逗号，不用冒号。',
+      '。':'前半句还没说完，不能用句号结束。',
+      '？':'疑问语气要看整句话；这里只是停顿，用逗号。',
+      '！':'前半句只是停顿，语气没结束，用逗号。',
+      '“':'前半句末尾是停一下，用逗号；前引号要等后面那半句开头才用。',
+      '”':'★顺序记住：先写逗号，逗号后面才是后引号。这个空填逗号。'}},
+
+  mid2:{ a:'，', pos:'中', name:'提示语后面',
+    why:'提示语在中间，它后面还要接着说下半句，用逗号（，）。',
+    bad:{
+      '：':'★最常丢分处：提示语在中间，它后面用逗号，不用冒号。',
+      '。':'提示语后面还要接着说下半句，不能用句号。',
+      '？':'提示语后面还要接下半句，用逗号，不用问号。',
+      '！':'提示语后面还要接下半句，用逗号，不用感叹号。',
+      '“':'★顺序记住：提示语后面先写逗号，再说下半句，下半句开头才加前引号。',
+      '”':'提示语后面还要接下半句，用逗号，不用后引号。'}},
+
+  post:{ a:'。', pos:'后', name:'提示语后面',
+    why:'提示语在最后，话已经说完，整句收尾用句号（。）。',
+    bad:{
+      '：':'冒号是“引出下面的话”用的；这里话已经说完，不用冒号。',
+      '，':'逗号表示还要接着说；可这里整句已经结束。',
+      '？':'问号属于引号里那句问话，已经写进去了；提示语后面只用句号。',
+      '！':'感叹号属于引号里那句话；提示语后面只用句号——不管那句话多激动。',
+      '“':'提示语在最后，话已经说完，收尾用句号，不再开新的引号。',
+      '”':'★顺序记住：后引号已经在前半句收好了，提示语后面直接写句号。'}},
+
+  endD:{ a:'。', pos:'末', name:'引号里句末',
+    why:'引号里是一句平平常常的话，说完了用句号（。）。句号要留在引号里面。',
+    bad:{
+      '：':'冒号是用在提示语后面引出话语的，不放在引号里面。',
+      '，':'逗号表示话还没说完；这句话到这里已经说完了。',
+      '？':'这句话不是在提问，不用问号。',
+      '！':'这句话只是讲一件事，没有特别激动的心情，不用感叹号。',
+      '“':'引号已经开好了，这里是句末，不再加前引号。',
+      '”':'★顺序记住：先写句号，句号后面才是后引号。这个空填句号。'}},
+
+  endQ:{ a:'？', pos:'末', name:'引号里句末',
+    why:'引号里是在问问题，句末用问号（？）。问号也要留在引号里面。',
+    bad:{
+      '：':'冒号是用在提示语后面的，引号里面句末不用冒号。',
+      '，':'这句话末尾是问完了，不是说到一半，不用逗号。',
+      '。':'这句话是在提问，句末要用问号，不能用句号。',
+      '！':'这是在问问题，不是喊叫，用问号。',
+      '“':'引号已经开好了，这里是句末，不再加前引号。',
+      '”':'★顺序记住：先写问号，问号后面才是后引号。这个空填问号。'}},
+
+  endE:{ a:'！', pos:'末', name:'引号里句末',
+    why:'引号里是高兴、着急、催促的话，句末用感叹号（！），留在引号里面。',
+    bad:{
+      '：':'冒号是用在提示语后面的，引号里面句末不用冒号。',
+      '，':'这句话到这里说完了，不是说到一半。',
+      '。':'这句话带着强烈的心情（高兴、着急或者催促），用感叹号更合适。',
+      '？':'这不是提问，不用问号。',
+      '“':'引号已经开好了，这里是句末，不再加前引号。',
+      '”':'★顺序记住：先写感叹号，感叹号后面才是后引号。这个空填感叹号。'}},
+
+  /* ★第四关专用：前引号 / 后引号 */
+  q1:  { a:'“', pos:'引', name:'说话内容开头',
+    why:'说话内容开始了，前面要加一个前引号。',
+    bad:{
+      '”':'后引号是“话说到这儿为止”用的；这里话刚刚开始，要用前引号。',
+      '：':'冒号要写在提示语后面；先有冒号，再紧跟前引号。',
+      '，':'说话内容开头要用前引号，不是逗号。',
+      '。':'说话内容开头要用前引号，不是句号。',
+      '？':'说话内容开头要用前引号，不是问号。',
+      '！':'说话内容开头要用前引号，不是感叹号。'}},
+
+  q2:  { a:'”', pos:'引', name:'说话内容结束',
+    why:'说话内容到这里告一段落，要用后引号把话“关”起来。',
+    bad:{
+      '“':'前引号用在说话内容开头；这里是收尾，要用后引号。',
+      '：':'说话内容结束要用后引号收住，不用冒号。',
+      '，':'话已经说完了，要用后引号收住，不是逗号。',
+      '。':'★顺序记住：先写句号，后引号排在句号后面。这个空填后引号。',
+      '？':'★顺序记住：先写问号，后引号排在问号后面。这个空填后引号。',
+      '！':'★顺序记住：先写感叹号，后引号排在感叹号后面。这个空填后引号。'}}
+};
+
+/* ============================== 题库（84 题） ============================== */
+const BANK = {
+
+/* ============ 第一关 一星：每句 2 个空 · 三种位置混着考 · 句子短 ============ */
+1: [
+  /* —— 提示语在前 —— */
+  {pos:'前', t:'老师说{0}“你真棒{1}”',                     k:['pre','endE']},
+  {pos:'前', t:'妈妈喊{0}“快来吃饭{1}”',                     k:['pre','endE']},
+  {pos:'前', t:'奶奶叮嘱我{0}“明天要早点回家{1}”',           k:['pre','endD']},
+  {pos:'前', t:'小明举着卷子说{0}“我得了一百分{1}”',         k:['pre','endE']},
+  {pos:'前', t:'爸爸指着地图说{0}“我们就走这条路{1}”',       k:['pre','endD']},
+  {pos:'前', t:'妹妹拍着小手说{0}“我也要去{1}”',             k:['pre','endE']},
+  {pos:'前', t:'爷爷笑着说{0}“今年的橘子真甜{1}”',           k:['pre','endD']},
+
+  /* —— 提示语在后 —— */
+  {pos:'后', t:'“你真棒{0}”老师说{1}',                       k:['endE','post']},
+  {pos:'后', t:'“我明天要早起{0}”小明说{1}',                 k:['endD','post']},
+  {pos:'后', t:'“这本书真好看{0}”妹妹捧着书说{1}',           k:['endE','post']},
+  {pos:'后', t:'“外面下雨了{0}”爷爷望着窗外说{1}',           k:['endD','post']},
+  {pos:'后', t:'“我学会骑自行车了{0}”小强高兴地说{1}',       k:['endD','post']},
+  {pos:'后', t:'“快把书包背上{0}”妈妈在门口喊{1}',           k:['endE','post']},
+  {pos:'后', t:'“这道题我会做{0}”小华举起手说{1}',           k:['endD','post']},
+
+  /* —— 提示语在中间 —— */
+  {pos:'中', t:'“你真棒，”老师说{0}“继续加油{1}”',           k:['mid2','endE']},
+  {pos:'中', t:'“今天的天气真好，”妈妈说{0}“我们去公园吧{1}”', k:['mid2','endE']},
+  {pos:'中', t:'“小心台阶，”老师提醒道{0}“慢慢走{1}”',        k:['mid2','endD']},
+  {pos:'中', t:'“别着急，”爷爷笑着说{0}“慢慢想{1}”',          k:['mid2','endD']},
+  {pos:'中', t:'“我回来了，”小明放下书包说{0}“今天作业不多{1}”', k:['mid2','endD']},
+  {pos:'中', t:'“快进来，”奶奶招着手说{0}“外面冷{1}”',        k:['mid2','endD']}
+],
+
+/* ============ 第二关 二星：句子变长 · 问号陷阱 · 中间位置 3 个空 ============ */
+2: [
+  /* —— 提示语在前 —— */
+  {pos:'前', t:'她满怀信心地说{0}“我会准时赶到那里的{1}”',     k:['pre','endD'], src:'课本原句 · 语文园地三'},
+  {pos:'前', t:'老屋问{0}“小蜘蛛，你吃饱了吗{1}”',             k:['pre','endQ'], src:'教材《总也倒不了的老屋》'},
+  {pos:'前', t:'妹妹捧着那片叶子说{0}“我要把它夹在书里{1}”',   k:['pre','endD']},
+  {pos:'前', t:'体育老师站到队伍前喊道{0}“大家排好队{1}”',     k:['pre','endE']},
+  {pos:'前', t:'爸爸放下报纸问{0}“今天的作业写完了吗{1}”',     k:['pre','endQ']},
+  {pos:'前', t:'老师轻轻敲了敲黑板说{0}“请大家看这里{1}”',     k:['pre','endD']},
+  {pos:'前', t:'小青蛙好奇地问{0}“我的妈妈去哪儿了呢{1}”',     k:['pre','endQ'], src:'真题卷改编'},
+
+  /* —— 提示语在后 —— */
+  {pos:'后', t:'“小蜘蛛，你吃饱了吗{0}”老屋问{1}',             k:['endQ','post'], src:'课本原句 · 语文园地三'},
+  {pos:'后', t:'“快下雨了，快把衣服收进来{0}”奶奶在院子里喊{1}', k:['endE','post']},
+  {pos:'后', t:'“这里的风景真美啊{0}”大家赞叹{1}',             k:['endE','post']},
+  {pos:'后', t:'“今天的作业写完了吗{0}”爸爸问{1}',             k:['endQ','post']},
+  {pos:'后', t:'“你会背了吗{0}”先生厉声问道{1}',               k:['endQ','post'], src:'真题卷改编'},
+  {pos:'后', t:'“小鸟一定会飞回来的{0}”男孩肯定地说{1}',       k:['endD','post'], src:'真题卷改编'},
+  {pos:'后', t:'“你不能随便动我的文具{0}”陈明大声喊道{1}',     k:['endE','post'], src:'真题卷改编'},
+
+  /* —— 提示语在中间 —— */
+  {pos:'中', t:'“不要紧{0}”小公鸡说道{1}“第一次能这样就很不错了{2}”', k:['mid1','mid2','endD'], src:'课本原句 · 语文园地三'},
+  {pos:'中', t:'“我今天{0}”妹妹嘟着嘴说{1}“忘了带作业本{2}”',  k:['mid1','mid2','endD']},
+  {pos:'中', t:'“我找不到橡皮了{0}”小明着急地说{1}“谁看见了吗{2}”', k:['mid1','mid2','endQ']},
+  {pos:'中', t:'“这本书我看完了{0}”小华说{1}“明天还给你{2}”',  k:['mid1','mid2','endD']},
+  {pos:'中', t:'“你怎么啦{0}”老师关切地问道{1}“为什么哭呢{2}”', k:['mid1','mid2','endQ'], src:'真题卷改编'},
+  {pos:'中', t:'“快点起床{0}”妈妈着急地说{1}“要迟到了{2}”',    k:['mid1','mid2','endD'], src:'真题卷改编'}
+],
+
+/* ============ 第三关 三星：教材原句 · 长句 · 提示语自带逗号干扰 ============ */
+3: [
+  /* —— 提示语在前 —— */
+  {pos:'前', t:'妈妈一边整理书包一边问{0}“今天在学校开心吗{1}”', k:['pre','endQ']},
+  {pos:'前', t:'小明大声喊{0}“快来看，天上有一道彩虹{1}”',      k:['pre','endE']},
+  {pos:'前', t:'老师微笑着走进教室说{0}“请大家把书翻到第四十三页{1}”', k:['pre','endD']},
+  {pos:'前', t:'老屋低下头，慈祥地回答道{0}“我愿意再站一个晚上{1}”', k:['pre','endD'], src:'教材《总也倒不了的老屋》'},
+  {pos:'前', t:'男孩仰起脸对老爷爷说{0}“谢谢您的帮助{1}”',      k:['pre','endD'], src:'真题卷改编'},
+  {pos:'前', t:'我一进门就大喊{0}“妈妈，我回来啦{1}”',          k:['pre','endE'], src:'真题卷改编'},
+  {pos:'前', t:'先生拿着戒尺走到孙中山跟前厉声问道{0}“你会背了吗{1}”', k:['pre','endQ'], src:'真题卷改编'},
+
+  /* —— 提示语在后 —— */
+  {pos:'后', t:'“快来看，天上有一道彩虹{0}”小明大声喊{1}',      k:['endE','post']},
+  {pos:'后', t:'“我要把这片叶子夹在书里{0}”妹妹小心翼翼地说{1}', k:['endD','post']},
+  {pos:'后', t:'“你真的愿意再站一个晚上吗{0}”小蜘蛛问{1}',      k:['endQ','post'], src:'教材《总也倒不了的老屋》'},
+  {pos:'后', t:'“太阳都晒屁股了，快起床{0}”妈妈推开门喊道{1}',  k:['endE','post']},
+  {pos:'后', t:'“我觉得很难{0}”小狗对小公鸡说道{1}',            k:['endD','post'], src:'真题卷改编'},
+  {pos:'后', t:'“藏好了吗{0}”青头大声问{1}',                    k:['endQ','post'], src:'教材《在牛肚子里旅行》'},
+  {pos:'后', t:'“这个玩具真好玩{0}”弟弟高兴地说{1}',            k:['endD','post'], src:'真题卷改编'},
+
+  /* —— 提示语在中间 —— */
+  {pos:'中', t:'“我要把这片叶子{0}”妹妹说{1}“夹在书里{2}”',     k:['mid1','mid2','endD']},
+  {pos:'中', t:'“今天的作业不多{0}”班长转过身说{1}“不过要认认真真地写{2}”', k:['mid1','mid2','endD']},
+  {pos:'中', t:'“我学会游泳啦{0}”小丽拉着妈妈的手说{1}“明天还想来{2}”', k:['mid1','mid2','endE']},
+  {pos:'中', t:'“外面下雨了{0}”妈妈探出头提醒{1}“记得带上雨伞{2}”', k:['mid1','mid2','endD']},
+  {pos:'中', t:'“安静{0}”班长大声说{1}“请回到自己的座位上{2}”', k:['mid1','mid2','endD'], src:'真题卷改编'},
+  {pos:'中', t:'“哎呀{0}”狐狸说道{1}“原来是这样，你这是给我设了一个圈套啊{2}”', k:['mid1','mid2','endE'], src:'真题卷改编'}
+],
+
+/* ====== 第四关 四星★全能关：整句零标点，所有标点全自己填（含前后引号） ======
+   ★和纸质习题完全一致：提示语就是干干净净的一段文字，【不加任何括号、引号】，
+     页面上只用"灰字＝提示语 / 蓝字＝说的话"来帮孩子分辨（ts 字段＝提示语原文）。
+   前：提示语后【冒号＋前引号】2 个方框；句末【句末标点＋后引号】2 个方框
+   后：句首【前引号】；话末【句末标点＋后引号】2 个方框；提示语后【句号】
+   中：句首【前引号】；前半话末【逗号＋后引号】2 个方框；
+       提示语后【逗号＋前引号】2 个方框；句末【句末标点＋后引号】2 个方框
+   ========================================================================= */
+4: [
+  /* —— 提示语在前（4 个空）—— */
+  {pos:'前', t:'妈妈喊{0}{1}快来吃饭{2}{3}',                       ts:'妈妈喊', k:['pre','q1','endE','q2']},
+  {pos:'前', t:'小明说{0}{1}我今天得了一百分{2}{3}',               ts:'小明说', k:['pre','q1','endD','q2']},
+  {pos:'前', t:'奶奶叮嘱我{0}{1}过马路要小心{2}{3}',               ts:'奶奶叮嘱我', k:['pre','q1','endD','q2']},
+  {pos:'前', t:'老师问{0}{1}今天的作业写完了吗{2}{3}',             ts:'老师问', k:['pre','q1','endQ','q2']},
+  {pos:'前', t:'妹妹捧着叶子说{0}{1}我要把它夹在书里{2}{3}',       ts:'妹妹捧着叶子说', k:['pre','q1','endD','q2']},
+  {pos:'前', t:'爸爸说{0}{1}我真要放手了{2}{3}',                   ts:'爸爸说', k:['pre','q1','endD','q2'], src:'真题卷改编'},
+  {pos:'前', t:'小青蛙好奇地问{0}{1}我的妈妈去哪儿了呢{2}{3}',     ts:'小青蛙好奇地问', k:['pre','q1','endQ','q2'], src:'真题卷改编'},
+  {pos:'前', t:'我自信满满地说{0}{1}放心吧，肯定不会的{2}{3}',     ts:'我自信满满地说', k:['pre','q1','endD','q2'], src:'真题卷改编'},
+
+  /* —— 提示语在后（4 个空）—— */
+  {pos:'后', t:'{0}今天玩得真开心{1}{2}我高兴地说{3}',             ts:'我高兴地说', k:['q1','endD','q2','post'], src:'真题卷改编'},
+  {pos:'后', t:'{0}藏好了吗{1}{2}青头大声问{3}',                   ts:'青头大声问', k:['q1','endQ','q2','post'], src:'教材《在牛肚子里旅行》'},
+  {pos:'后', t:'{0}那马会踢伤你的{1}{2}他在身后喊道{3}',           ts:'他在身后喊道', k:['q1','endD','q2','post'], src:'真题卷改编'},
+  {pos:'后', t:'{0}雨来没有死{1}{2}大家都高兴地叫起来{3}',         ts:'大家都高兴地叫起来', k:['q1','endE','q2','post'], src:'真题卷改编'},
+  {pos:'后', t:'{0}这个玩具真好玩{1}{2}弟弟高兴地说{3}',           ts:'弟弟高兴地说', k:['q1','endD','q2','post'], src:'真题卷改编'},
+  {pos:'后', t:'{0}你不能随便动我的文具{1}{2}陈明大声喊道{3}',     ts:'陈明大声喊道', k:['q1','endE','q2','post'], src:'真题卷改编'},
+  {pos:'后', t:'{0}我觉得很难{1}{2}小狗对小公鸡说道{3}',           ts:'小狗对小公鸡说道', k:['q1','endD','q2','post'], src:'真题卷改编'},
+  {pos:'后', t:'{0}是你吗，小林{1}{2}爸爸叹了口气说{3}',           ts:'爸爸叹了口气说', k:['q1','endQ','q2','post'], src:'真题卷改编'},
+
+  /* —— 提示语在中间（7 个空）—— */
+  {pos:'中', t:'{0}太美了{1}{2}姐姐高兴地说{3}{4}这儿真是太美了{5}{6}',
+   ts:'姐姐高兴地说', k:['q1','mid1','q2','mid2','q1','endE','q2'], src:'真题卷改编'},
+  {pos:'中', t:'{0}你怎么啦{1}{2}老师关切地问道{3}{4}为什么哭呢{5}{6}',
+   ts:'老师关切地问道', k:['q1','mid1','q2','mid2','q1','endQ','q2'], src:'真题卷改编'},
+  {pos:'中', t:'{0}回来{1}{2}他在身后喊道{3}{4}那马会踢伤你的{5}{6}',
+   ts:'他在身后喊道', k:['q1','mid1','q2','mid2','q1','endE','q2'], src:'真题卷改编'},
+  {pos:'中', t:'{0}快点起床{1}{2}妈妈着急地说{3}{4}要迟到了{5}{6}',
+   ts:'妈妈着急地说', k:['q1','mid1','q2','mid2','q1','endD','q2'], src:'真题卷改编'},
+  {pos:'中', t:'{0}安静{1}{2}班长大声说{3}{4}请回到自己的座位上{5}{6}',
+   ts:'班长大声说', k:['q1','mid1','q2','mid2','q1','endD','q2'], src:'真题卷改编'},
+  {pos:'中', t:'{0}别怕{1}{2}妈妈抚摸着我的头说{3}{4}打个针而已{5}{6}',
+   ts:'妈妈抚摸着我的头说', k:['q1','mid1','q2','mid2','q1','endD','q2'], src:'真题卷改编'},
+  {pos:'中', t:'{0}什么{1}{2}她说{3}{4}你是说今天就要出差了{5}{6}',
+   ts:'她说', k:['q1','mid1','q2','mid2','q1','endQ','q2'], src:'真题卷改编'},
+  {pos:'中', t:'{0}不行{1}{2}他头摇得跟个拨浪鼓似的叫道{3}{4}我们不能做坏事{5}{6}',
+   ts:'他头摇得跟个拨浪鼓似的叫道', k:['q1','mid1','q2','mid2','q1','endE','q2'], src:'真题卷改编'}
+]
+};
+
+const LEVELS = [
+  {n:1, name:'第一关 · 一星', stars:'⭐',    emoji:'🌱', color:'#22a06b',
+   tip:'每句 2 个空 · 三种位置混着考（引号已给出）'},
+  {n:2, name:'第二关 · 二星', stars:'⭐⭐',   emoji:'🚀', color:'#1f6fb2',
+   tip:'句子变长 · 问号陷阱 · 中间位置 3 个空'},
+  {n:3, name:'第三关 · 三星', stars:'⭐⭐⭐',  emoji:'👑', color:'#ef8f1e',
+   tip:'教材原句 · 长句 · 提示语自带逗号干扰'},
+  {n:4, name:'第四关 · 四星', stars:'⭐⭐⭐⭐', emoji:'🏆', color:'#a8549a',
+   tip:'★全能关：整句零标点，连前引号“ 后引号”都要自己填'},
+  /* ★回炉关：四关跑完后，把"跳过看答案"的句子攒起来，不看答案再做一遍（序号 5，不计入 LAST_LEVEL） */
+  {n:5, name:'回炉关 · 再练一遍', stars:'🔁', emoji:'🔥', color:'#c2622f',
+   tip:'把刚才跳过的句子重新做一遍 —— 这次不看答案'}
+];
+
+const SONG = '提示语，在前面，冒号紧紧跟后边；<br>提示语，在中间，逗号轻轻点一点；<br>提示语，在后面，句号收尾在后边；<br>引号里的话说完，问号叹号留里面。';
+const SONG2 = '前引号' + '“' + '，放开头；后引号' + '”' + '，收尾关。<br>'
+  + '冒号后面紧跟前引号' + '“' + '；<br>句号、问号、感叹号，都排在后引号' + '”' + '的前面。';
+
+/* ====================== 工具 ====================== */
+const app = document.getElementById('app');
+let muted = false, audioCtx = null;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+
+function beep(ok){
+  if (muted) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination); o.type = 'sine';
+    if (ok){ o.frequency.setValueAtTime(660, t); o.frequency.setValueAtTime(920, t + 0.11); }
+    else  { o.frequency.setValueAtTime(320, t); o.frequency.setValueAtTime(210, t + 0.14); }
+    g.gain.setValueAtTime(0.0001, t); g.gain.setValueAtTime(0.15, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.36);
+    o.start(t); o.stop(t + 0.4);
+  }catch(e){}
+}
+function flyStars(n){
+  for (let i = 0; i < n; i++){
+    const s = document.createElement('div');
+    s.className = 'fly'; s.textContent = '⭐';
+    s.style.left = (Math.random() * 88 + 6) + 'vw';
+    s.style.animationDelay = (Math.random() * 0.7) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 2500);
+  }
+}
+function splitQ(t){
+  const out = []; const re = /\{(\d)\}/g; let last = 0, m;
+  while ((m = re.exec(t)) !== null){
+    if (m.index > last) out.push({type:'text', v:t.slice(last, m.index)});
+    out.push({type:'blank', i:+m[1]}); last = m.index + m[0].length;
+  }
+  if (last < t.length) out.push({type:'text', v:t.slice(last)});
+  return out;
+}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+/* ★行内引号转课本字体：反馈文字、选项提示里出现的 “ ” 不再渲染成黑体两撇 */
+function qm(s){ return String(s).replace(/“|”/g, c => '<span class="qmm">' + c + '</span>'); }
+
+/* ============ 题干渲染（逐字，带★行首禁则） ============
+   ①提示语 → 灰字（不加任何括号，题干保持"习题原样"）
+   ②引号 → 课本字体 .qm；引号里的话 → 蓝字 .talk（第四关没有引号，除提示语外全蓝）
+   ③★中文禁则（避头尾）：空位方框和"不能出现在行首"的标点，
+     一律和它前面的那个字粘成一个整体（.glue / white-space:nowrap），
+     换行时绝不会跑到一行开头；"不能出现在行尾"的前引号也粘住后一个字。 */
+const NO_LINE_HEAD = '。，、；：？！）］｝〉》」』】”〞〟·ー～%‰℃';   /* 不能出现在行首 */
+const NO_LINE_TAIL = '（［｛〈《「『【“‘';                        /* 不能出现在行尾 */
+
+/* 题干逐字展开：{c:字符, h:HTML} 或 {b:空位序号} */
+function charItems(t, isL4, ts){
+  const items = [];
+  let open = false;                       /* 是否在引号里（引号里的话染蓝） */
+  const push = (v, force) => {
+    for (const ch of v){
+      const cls = force || (isL4 ? 'talk' : (open ? 'talk' : ''));
+      let inner;
+      if (ch === '“'){ inner = '<span class="qm">“</span>'; open = true; }
+      else if (ch === '”'){ inner = '<span class="qm">”</span>'; open = false; }
+      else inner = esc(ch);
+      items.push({c:ch, h:cls ? '<span class="' + cls + '">' + inner + '</span>' : inner});
+    }
+  };
+  splitQ(t).forEach(sg => {
+    if (sg.type === 'blank'){ items.push({b:sg.i}); return; }
+    if (ts && sg.v.indexOf(ts) >= 0){      /* 提示语灰字，其余是"说的话" */
+      sg.v.split(ts).forEach((seg, i) => {
+        if (i) push(ts, 'tsy');
+        if (seg) push(seg);
+      });
+    } else push(sg.v);
+  });
+  return items;
+}
+
+/* mark = 错题回顾里"填错的那一个空"序号，用红框标出 */
+const CN_NUM = '①②③④⑤⑥⑦';
+function renderSentence(t, answers, bi, isL4, mark, ts){
+  const items = charItems(t, isL4, ts);
+  items.forEach(it => {
+    if (it.b === undefined) return;
+    const v = answers ? answers[it.b] : null;
+    let cls = 'blank';
+    if (v) cls += ' filled';
+    else if (bi === it.b) cls += ' active';
+    if (v && mark === it.b) cls += ' mark';
+    /* ★空格子里不放「？」（孩子会以为要填问号）：当前空显示序号①②③，其余留白 */
+    let inner = '';
+    if (v) inner = esc(v);
+    else if (bi === it.b) inner = CN_NUM[it.b] || String(it.b + 1);
+    it.h = '<span class="' + cls + '">' + inner + '</span>';
+  });
+  /* ★禁则粘合：same[k]=true 表示第 k、k+1 个字符之间不许换行 */
+  const n = items.length, same = new Array(n).fill(false);
+  for (let k = 0; k < n; k++){
+    if (k > 0 && (items[k].b !== undefined || NO_LINE_HEAD.indexOf(items[k].c) >= 0)) same[k - 1] = true;
+    if (k + 1 < n && items[k].c && NO_LINE_TAIL.indexOf(items[k].c) >= 0) same[k] = true;
+  }
+  let html = '', buf = '', cnt = 0;
+  for (let k = 0; k < n; k++){
+    buf += items[k].h; cnt++;
+    if (k + 1 < n && same[k]) continue;
+    html += (cnt > 1) ? '<span class="glue">' + buf + '</span>' : buf;
+    buf = ''; cnt = 0;
+  }
+  return html;
+}
+function blankCount(q){ return splitQ(q.t).filter(x => x.type === 'blank').length; }
+function ansOf(q, i){ return KEYS[q.k[i]].a; }
+function whyOf(q, i){ return KEYS[q.k[i]].why; }
+function posOf(q, i){ return KEYS[q.k[i]].pos; }
+function badOf(q, i, v){
+  const K = KEYS[q.k[i]];
+  return (K.bad && K.bad[v]) || '再看看提示语在句子的哪儿，标点要跟着它变。';
+}
+function rulesHTML(hot, level){
+  const R = [
+    ['q','前','冒号（：）','妈妈说：“快起床。”'],
+    ['z','中','逗号（，）','“快起床，”妈妈说，“要迟到了。”'],
+    ['h','后','句号（。）','“快起床。”妈妈说。'],
+    ['m','末','句号、问号、感叹号','“你吃饭了吗？”妈妈问。']
+  ];
+  /* ★第五张规则卡的例句里，提示语"妈妈说"也不用括号，只做灰字 */
+  if (level >= 4) R.push(['y','引','前引号“　后引号”','妈妈说：“快起床。”','妈妈说']);
+  const LABEL = {'前':'提示语在前','中':'提示语在中','后':'提示语在后','末':'引号里句末','引':'前引号后引号'};
+  return '<div class="rules">' + R.map(r =>
+    '<div class="rc' + (hot === r[1] ? ' hot' : '') + '" data-p="' + r[1] + '">'
+    + '<span class="tag ' + r[0] + '">' + LABEL[r[1]] + '</span>'
+    + '<span class="ar">→ ' + qm(r[2]) + '</span>'
+    + '<span class="eg">例：' + renderSentence(r[3], null, -1, false, -1, r[4]) + '</span></div>').join('') + '</div>';
+}
+
+/* ★符号读法图例：每个符号叫什么，红框/灰字分别是什么意思 */
+function symNoteHTML(){
+  const order = ['“','”','：','，','。','？','！'];
+  return '<div class="symnote">符号读法：'
+    + order.map(s => '<i>' + s + '</i>＝' + nameOf(s)).join('　')
+    + '<br><span style="color:#8b95a1;font-size:13.5px">红框＝你填错的那一个空；灰字是提示语，蓝字是说的话。</span></div>';
+}
+
+/* ====================== 出题：每关三种位置各至少 1 题 ====================== */
+let lastIds = [];
+function pick(level){
+  const pool = BANK[level].map((q, idx) => {
+    const o = {}; for (const k in q) o[k] = q[k];
+    o.lv = level; o.id = level + '-' + idx; return o;
+  });
+  const fresh = shuffle(pool.filter(q => lastIds.indexOf(q.id) < 0));
+  const rest  = shuffle(pool.filter(q => lastIds.indexOf(q.id) >= 0));
+  const picked = [];
+  ['前','中','后'].forEach(p => {
+    const one = fresh.filter(q => q.pos === p)[0];
+    if (one && picked.indexOf(one) < 0) picked.push(one);
+  });
+  fresh.forEach(q => { if (picked.length < PER_LEVEL && picked.indexOf(q) < 0) picked.push(q); });
+  rest.forEach(q => { if (picked.length < PER_LEVEL && picked.indexOf(q) < 0) picked.push(q); });
+  return shuffle(picked).slice(0, PER_LEVEL);
+}
+
+/* ====================== 状态 ====================== */
+let S = null;
+function newGame(){
+  if (S && S.round && S.round.length) lastIds = S.round.slice();
+  S = { level:1, queue:[], qi:0, bi:0, answers:[], wrong:0, wrongLog:[], skipLog:[], round:[],
+        skipping:false, reviewSee:0, start:Date.now(), stage:'intro' };
+  S.queue = pick(1);
+  S.round = S.queue.map(q => q.id);
+  render();
+}
+
+/* ====================== 渲染 ====================== */
+function render(){
+  if (S.stage === 'intro'){ renderIntro(); return; }
+  const L = LEVELS[S.level - 1];
+  const q = S.queue[S.qi];
+  const n = blankCount(q);
+  /* ★回炉关里混着各关的句子：按"这一句原来属于第几关"判断要不要自己填引号 */
+  const ruleLv = (S.stage === 'review') ? q.lv : S.level;
+  const isL4 = ruleLv >= 4;
+  const total = S.queue.length;   /* 回炉关的题数＝跳过的句数，不固定，不能用 PER_LEVEL */
+
+  let html = '<div class="topbar"><div class="badge">'
+    + '<span class="lv">' + L.name + '</span><span class="st">' + L.stars + '</span>'
+    + '<span class="pg">' + L.emoji + ' 第 ' + (S.qi + 1) + '/' + total + '</span></div>'
+    + '<button class="iconbtn" id="mute">' + (muted ? '🔇' : '🔊') + '</button></div>';
+
+  html += rulesHTML(S.hot, ruleLv);
+
+  const tip = isL4
+    ? '这一句<b>一个标点都没有</b>！共 <b>' + n + '</b> 个空，连<b>前引号' + qm('“') + '</b>、<b>后引号' + qm('”') + '</b>都要自己填。'
+      + '<br><span style="color:#8b95a1">橙框里的 ①②③ 是现在要填第几个空；灰字是提示语，蓝字是说的话。</span>'
+    : '这一句里有 <b>' + n + '</b> 个空，<b>全部</b>都要选出来。'
+      + '<br><span style="color:#8b95a1">橙框里的 ①②③ 是现在要填第几个空。</span>';
+
+  html += '<div class="card">'
+    + '<div class="qtip">' + tip + '</div>'
+    + '<div class="dots">';
+  for (let i = 0; i < total; i++){
+    html += '<span class="dot ' + (i < S.qi ? 'ok' : (i === S.qi ? 'now' : '')) + '"></span>';
+  }
+  const OP = optsOf(q, S.bi, ruleLv);   /* ★按中文规范过滤后的选项（回炉关沿用原关卡的选项池） */
+  html += '</div><div class="sentence" id="sen">' + renderSentence(q.t, S.answers, S.bi, isL4, -1, q.ts) + '</div>'
+       +  '<div class="opts" id="opts">';
+  /* ★选项顺序固定按「“ ” ： ， 。 ？ ！」排，不随机 —— 孩子每次位置一样，好找 */
+  OP.forEach(o => {
+    const bad = S.wrongOpts && S.wrongOpts.indexOf(o) > -1;
+    html += '<button class="opt' + (bad ? ' bad' : '') + '" data-v="' + o + '"' + (bad ? ' disabled' : '') + '>'
+      + '<span class="os">' + o + '</span>'
+      + '<span class="on">' + nameOf(o) + '</span></button>';
+  });
+  const bn = banNote(q, S.bi, ruleLv);
+  /* ★回炉关的跳过按钮换一套说法：这是"再看一遍"，但不会再开一次回炉关 */
+  const skipTxt = (S.stage === 'review')
+    ? '👀 再看一遍答案'
+    : '⏭ 跳过这一句，直接看答案';
+  const skipHint = (S.stage === 'review')
+    ? '别急，想不出来就看一眼，结束页还会再列出来'
+    : '不会做也没关系，先看看正确的写法，最后还有一关「🔁 回炉关」让你不看答案再做一遍';
+  html += '</div><div class="opttip">给第 ' + (S.bi + 1) + ' 个空选标点（共 ' + n + ' 个）'
+       +  (OP.length === 1 ? ' · <span style="color:#a8549a">这里只能填它</span>' : '') + '</div>'
+       +  (bn ? '<div class="banrule">' + bn + '</div>' : '')
+       + '<div id="fb"></div>'
+       + '<div class="skipbar"><button class="skipbtn" id="skipbtn">' + skipTxt + '</button>'
+       +   '<div class="skiphint">' + skipHint + '</div></div>'
+       + '</div>';
+
+  app.innerHTML = html;
+  document.getElementById('mute').onclick = () => { muted = !muted; render(); };
+  document.getElementById('skipbtn').onclick = skipQuestion;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'), b => {
+    b.onclick = () => choose(b.dataset.v, b);
+  });
+}
+
+/* ====================== ⏭ 跳过这一句 ======================
+   ① 先把这一句按正确写法整句亮出来（琥珀色框＝答案），孩子不是"空着过去"；
+   ② 讲一句为什么（按提示语位置给口诀）；
+   ③ 1.8 秒后自动进入下一句；
+   ④ 记进 S.skipLog，结束页集中回顾（不算错题，但要看一遍）。
+   ========================================================== */
+function skipWhy(q){
+  if (q.pos === '前') return '提示语在最<b>前面</b>，它后面要用<b>冒号</b>；引号里的话说完，句号（问号、感叹号）留在引号<b>里面</b>。';
+  if (q.pos === '中') return '提示语在<b>中间</b>，前后都是同一个人说的话：前半句末尾用<b>逗号</b>，提示语后面也要用<b>逗号</b>。';
+  return '提示语在<b>后面</b>，先把前面那句话用句号（问号、感叹号）<b>收尾</b>，提示语后面再补一个<b>句号</b>。';
+}
+/* 结束页用的一行短提示（同一批句子位置相同，短句不啰嗦） */
+function skipShort(q){
+  if (q.pos === '前') return '提示语在前面 → 用冒号，引号里的话说完，标点留在引号里面';
+  if (q.pos === '中') return '提示语在中间 → 前后都用逗号，引号里的话说完，标点留在引号里面';
+  return '提示语在后面 → 前面的话先用句号收尾，提示语后面再补句号';
+}
+function skipQuestion(){
+  if (S.skipping) return;          /* 防止连点 */
+  S.skipping = true;
+  const q = S.queue[S.qi];
+  const n = blankCount(q);
+  /* 跳过不响"对/错"音效（它不是答错），保持安静 */
+  /* 记日志（同一句只记一次）：回炉关里再点"看答案"只计数，不重复进回炉队列 */
+  if (S.stage === 'review') S.reviewSee = (S.reviewSee || 0) + 1;
+  else if (!S.skipLog.some(x => x.id === q.id))
+    S.skipLog.push({id:q.id, t:q.t, k:q.k, ts:q.ts, pos:q.pos, src:q.src, lv:S.level});
+
+  /* 就地整句按正确写法亮出来 */
+  const ans = [];
+  for (let i = 0; i < n; i++) ans[i] = ansOf(q, i);
+  S.answers = ans; S.bi = -1; S.wrongOpts = null; S.hot = null;
+  const sen = document.getElementById('sen');
+  if (sen){
+    sen.classList.add('skipsen');
+    sen.innerHTML = renderSentence(q.t, ans, -1, S.level >= 4, -1, q.ts);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'), b => { b.disabled = true; });
+  const tip = document.querySelectorAll('.opttip')[0];
+  if (tip) tip.innerHTML = (S.stage === 'review' ? '这一句先看答案' : '这一句先跳过')
+    + '，正确写法在上面（琥珀色的框就是答案）';
+  document.querySelectorAll('.skipbar')[0].style.display = 'none';
+  Array.prototype.forEach.call(document.querySelectorAll('.rc'), c => c.classList.remove('hot'));
+
+  /* 每个空都点一遍"这里填的是什么"，孩子看得懂 */
+  let rows = '';
+  for (let i = 0; i < n; i++)
+    rows += '<span class="row">第 ' + (i + 1) + ' 个空：' + symTag(ansOf(q, i), 'yes') + '　' + qm(whyOf(q, i)) + '</span>';
+
+  const fb = document.getElementById('fb');
+  fb.innerHTML = '<div class="fb skip">'
+    + (S.stage === 'review' ? '👀 再看一遍：正确写法在上面' : '⏭ 跳过这一句，正确写法在上面')
+    + rows
+    + '<span class="row">为什么：' + qm(skipWhy(q)) + '</span>'
+    + (q.src ? '<span class="row">📖 ' + q.src + '</span>' : '')
+    + '<button class="nextbtn" id="skipnext">看懂了，下一句 →</button>'
+    + '<span class="row" style="text-align:center;color:#b3bcc7;font-size:14px">不点也没关系，几秒后自己往下走</span></div>';
+  /* 看懂了可提前点；不点的话 3.5 秒后自动进下一句（够孩子读完答案） */
+  document.getElementById('skipnext').onclick = skipDone;
+  S.skipTimer = setTimeout(skipDone, 3500);
+}
+/* 跳过收尾：只走一次（手动点 + 自动兜底互不重复） */
+function skipDone(){
+  if (!S.skipping) return;
+  S.skipping = false;
+  if (S.skipTimer){ clearTimeout(S.skipTimer); S.skipTimer = null; }
+  nextQuestion();
+}
+
+function renderIntro(){
+  const L = LEVELS[0];
+  app.innerHTML = '<div class="topbar"><div class="badge">'
+    + '<span class="lv">提示语加标点 · 闯关</span><span class="st">⭐⭐⭐⭐</span>'
+    + '<span class="pg">共 20 句</span></div>'
+    + '<button class="iconbtn" id="mute">' + (muted ? '🔇' : '🔊') + '</button></div>'
+    + '<div class="std">标准中文标点（看清字形 · 记住名字）'
+    +   '<div>' + SYM_ORDER.map(s => '<span class="sym">' + s + '</span>').join('') + '</div>'
+    +   '<div style="font-size:12.5px;color:#8b95a1;font-weight:800">'
+    +     SYM_ORDER.map(s => '<span style="display:inline-block;min-width:38px">' + nameOf(s) + '</span>').join('')
+    +   '</div></div>'
+    + '<div class="song">' + SONG + '</div>'
+    + rulesHTML(null, 4)
+    + '<div class="card center">'
+    +   '<div class="emo">🌱</div>'
+    +   '<div class="big">四关闯关 · 开始</div>'
+    +   '<div style="font-size:16px;color:#5b6672;font-weight:700;line-height:1.85;text-align:left">'
+    +     '<b>①</b> 三种位置（前 / 中 / 后）<b>混着</b>考，看清楚提示语在句子的哪儿。<br>'
+    +     '<b>②</b> 一句里<b>所有</b>该填的标点都要选：提示语旁边的那一个，加上引号里那句话结尾的那个。<br>'
+    +     '<b>③</b> <b>第四关</b>整句一个标点都没有，连<b>前引号' + qm('“') + '、后引号' + qm('”') + '</b>都要自己填。<br>'
+    +     '<b>④</b> 选项里<b>只给"这里真能用"的标点</b>：比如句首不会出现后引号、逗号、句号、问号、感叹号，句末不会出现前引号、冒号、逗号——按中文书写规范来。<br>'
+    +     '<b>⑤</b> 选错了不跳过，会告诉你为什么错，选对才能往下走。<br>'
+    +     '<b>⑥</b> 实在不会？点句子下面的<b>「⏭ 跳过这一句」</b>，先把正确写法看一遍再往下走，<b>不算错</b>。<br>'
+    +     '<b>⑦</b> 四关跑完，跳过的句子会攒起来再开一关<b>「🔥 回炉关」</b>——<b>不看答案</b>让你自己做一遍，做完才算真的会。'
+    +   '</div>'
+    +   '<div style="margin-top:18px"><button class="btn" id="go">开始闯关</button></div>'
+    + '</div>';
+  document.getElementById('mute').onclick = () => { muted = !muted; renderIntro(); };
+  document.getElementById('go').onclick = () => { beep(true); S.stage = 'play'; render(); };
+}
+
+function choose(v, btn){
+  const q = S.queue[S.qi];
+  const n = blankCount(q);
+  const right = ansOf(q, S.bi);
+  const fb = document.getElementById('fb');
+
+  if (v === right){
+    S.answers[S.bi] = v; S.wrongOpts = null; S.hot = null;
+    Array.prototype.forEach.call(document.querySelectorAll('.rc'), c => c.classList.remove('hot'));
+    beep(true); btn.classList.add('good');
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'), b => { b.disabled = true; });
+    const cur = S.bi;
+    if (S.bi + 1 < n){
+      S.bi += 1;
+      fb.innerHTML = '<div class="fb ok">✅ 选对啦！'
+        + '<span class="row">' + symTag(v, 'yes') + '　填对了！' + qm(whyOf(q, cur)) + '</span>'
+        + '<span class="row">继续给第 ' + (S.bi + 1) + ' 个空选标点。</span></div>';
+      setTimeout(render, 700);
+    } else {
+      fb.innerHTML = '<div class="fb ok pop">🎉 这一句全部填对！'
+        + '<span class="row">' + qm(whyOf(q, cur)) + '</span>'
+        + (q.src ? '<span class="row">📖 ' + q.src + '</span>' : '')
+        + '<span class="row">马上进入下一句……</span></div>';
+      setTimeout(nextQuestion, 1100);
+    }
+  } else {
+    S.wrong += 1;
+    S.wrongOpts = (S.wrongOpts || []).concat(v);
+    S.hot = posOf(q, S.bi);
+    S.wrongLog.push({t:q.t, k:q.k, ts:q.ts, bi:S.bi, ans:right, why:whyOf(q, S.bi), picked:v, bad:badOf(q, S.bi, v), lv:S.level});
+    beep(false);
+    /* ★就地更新，不整页重渲染：解析必须留在屏幕上，等孩子看清后自己再选 */
+    btn.classList.add('bad', 'shake');
+    btn.disabled = true;
+    const sen = document.getElementById('sen'); if (sen) sen.classList.add('shake');
+    Array.prototype.forEach.call(document.querySelectorAll('.rc'), c => {
+      if (c.dataset.p === S.hot) c.classList.add('hot'); else c.classList.remove('hot');
+    });
+    const tip = document.querySelectorAll('.opttip')[0];
+    if (tip) tip.innerHTML = '看清错因，重新给第 ' + (S.bi + 1) + ' 个空选标点';
+    /* ★符号一律「大字块 ＋ 中文名」，不出现孤零零的一个字符 */
+    fb.innerHTML = '<div class="fb no">❌ 不对，看清下面的话，再选一次'
+      + '<span class="row">你选的是：' + symTag(v, 'no') + '　不对。</span>'
+      + '<span class="row">为什么不对：<b>' + qm(badOf(q, S.bi, v)) + '</b></span>'
+      + '<span class="row">应该填：' + symTag(right, 'yes') + '　' + qm(whyOf(q, S.bi)) + '</span></div>';
+  }
+}
+
+function nextQuestion(){
+  S.bi = 0; S.answers = []; S.wrongOpts = null; S.hot = null;
+  if (S.qi + 1 < S.queue.length){ S.qi += 1; render(); }
+  else levelClear();
+}
+
+function levelClear(){
+  const L = LEVELS[S.level - 1];
+  beep(true); flyStars(12);
+  const reviewing = (S.stage === 'review');
+  const cnt = S.queue.length;
+  let html = '<div class="card center pop"><div class="emo">' + L.emoji + '</div>'
+    + '<div class="big">' + L.stars + ' ' + L.name + (reviewing ? ' 完成！' : ' 通关！') + '</div>';
+  /* 跳过的句数：不扣星，但要如实告诉孩子"有几句是看答案过的" */
+  const sk = reviewing ? (S.reviewSee || 0) : S.skipLog.filter(x => x.lv === S.level).length;
+  html += sk
+    ? '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 ' + cnt + ' 句完成，其中 <b style="color:#a97214">' + sk + ' 句</b>是看答案过的。</div>'
+    : '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 ' + cnt + ' 句全部自己填对，太厉害了！</div>';
+  html += '<div class="stat"><div>📌 ' + L.tip + '</div></div>';
+  if (S.level < LAST_LEVEL){
+    const NL = LEVELS[S.level];
+    html += '<div style="font-size:17px;font-weight:800;color:' + NL.color + '">马上进入 ' + NL.name + ' ……</div>';
+    if (NL.n === 4) html += '<div style="margin-top:10px;font-size:15px;font-weight:700;color:#a8549a;line-height:1.8">'
+      + '下一关整句<b>一个标点都没有</b>，<br>连<b>前引号' + qm('“') + '、后引号' + qm('”') + '</b>都要自己填哦！</div>';
+  }
+  /* ★第四关通关后：还有跳过的句子 → 预告「回炉关」 */
+  else if (!reviewing && S.skipLog.length){
+    html += '<div style="font-size:17px;font-weight:800;color:#c2622f">🔥 别急着走 —— 马上进入「回炉关」！</div>'
+      + '<div style="margin-top:10px;font-size:15px;font-weight:700;color:#5b6672;line-height:1.8">'
+      + '刚才你<b style="color:#a97214">跳过 ' + S.skipLog.length + ' 句</b>，<br>这一关把它们<b>重新排一遍</b>，'
+      + '<b style="color:#c2622f">不看答案</b>，自己做做看！</div>';
+  }
+  app.innerHTML = html + '</div>';
+  setTimeout(advance, 1900);
+}
+
+/* ★关卡推进：普通关 →（有跳过就）回炉关 → 结束页 */
+function advance(){
+  if (S.level < LAST_LEVEL){
+    S.level += 1; S.qi = 0; S.bi = 0; S.answers = []; S.wrongOpts = null; S.hot = null;
+    S.queue = pick(S.level);
+    S.round = S.round.concat(S.queue.map(q => q.id));
+    render();
+  } else if (S.stage !== 'review' && S.skipLog.length){
+    startReview();
+  } else finish();
+}
+
+/* ★回炉关：把跳过的句子原样再排一遍（空全部清空，自己填） */
+function startReview(){
+  const seen = {};
+  S.queue = S.skipLog.filter(x => { if (seen[x.id]) return false; seen[x.id] = 1; return true; })
+    .map(x => ({pos:x.pos, t:x.t, k:x.k, ts:x.ts, src:x.src, lv:x.lv, id:x.id}));
+  if (!S.queue.length){ finish(); return; }
+  S.stage = 'review'; S.level = 5; S.qi = 0; S.bi = 0; S.answers = [];
+  S.wrongOpts = null; S.hot = null; S.skipping = false; S.reviewSee = 0;
+  render();
+}
+
+function finish(){
+  const sec = Math.round((Date.now() - S.start) / 1000);
+  const mm = String(Math.floor(sec / 60)).padStart(2, '0'), ss = String(sec % 60).padStart(2, '0');
+  beep(true); flyStars(28);
+  const seen = {};
+  const uniq = S.wrongLog.filter(x => { const k = x.t + x.bi + x.picked; if (seen[k]) return false; seen[k] = 1; return true; });
+  let html = '<div class="card center pop"><div class="emo">🏆</div>'
+    + '<div class="big">闯关成功！</div>'
+    + '<div style="font-size:17px;font-weight:700;color:#5b6672">提示语加标点 · 四关全部通关 ⭐⭐⭐⭐'
+    + (S.skipLog.length ? '　＋ 🔁 回炉关完成' : '') + '</div>'
+    + '<div class="stat"><div>⏱ ' + mm + ':' + ss + '</div><div>❌ 失误 ' + S.wrong + ' 次</div><div>📝 答错 ' + uniq.length + ' 处</div>'
+    + (S.skipLog.length ? '<div>⏭ 跳过 ' + S.skipLog.length + ' 句</div>' : '') + '</div>'
+    + '<div style="font-size:16px;font-weight:700;color:#155e8a;line-height:1.9;font-family:var(--qfont)">口诀记住：<br>提示语在<b>前</b>用<b>冒号</b>，在<b>中间</b>用<b>逗号</b>，在<b>后</b>用<b>句号</b>；<br>引号里的话说完，句号问号感叹号都留在引号里面。</div>'
+    + '<div class="song" style="margin-top:14px">' + qm(SONG2) + '</div>';
+  if (uniq.length){
+    html += '<div class="wronglist" style="margin-top:16px">'
+      + '<div style="font-size:16.5px;font-weight:800;margin-bottom:8px">🔍 错题回顾（共 ' + uniq.length + ' 处）</div>'
+      + symNoteHTML()
+      + '<ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    uniq.forEach(x => {
+      html += '<li>'
+        + '<div class="wsent">' + renderAnswer(x) + '</div>'
+        + '<div class="wrow">' + symTag(x.picked, 'no') + '　<b style="color:#b02b1e">你刚才填的是这个，不对</b></div>'
+        + '<div class="wrow" style="color:#b02b1e">为什么不对：' + qm(x.bad) + '</div>'
+        + '<div class="wrow">' + symTag(x.ans, 'yes') + '　<b style="color:#16794f">这里应该填这个</b></div>'
+        + '<div class="wrow" style="color:#4a5560">' + qm(x.why) + '</div>'
+        + '</li>';
+    });
+    html += '</ul></div>';
+  }
+  /* ★跳过的句子：不算错题，但整句正确写法要再看一遍 */
+  if (S.skipLog.length){
+    html += '<div class="wronglist" style="margin-top:16px;border-color:#f2ddb0;background:#fffdf7">'
+      + '<div style="font-size:16.5px;font-weight:800;margin-bottom:8px;color:#a97214">⏭ 跳过的句子（共 ' + S.skipLog.length + ' 句 · 已在 🔁 回炉关重做 · 再读一遍）</div>'
+      + symNoteHTML()
+      + '<ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    S.skipLog.forEach(x => {
+      const m = splitQ(x.t).filter(s => s.type === 'blank').length, a = {};
+      for (let i = 0; i < m; i++) a[i] = KEYS[x.k[i]].a;
+      html += '<li>'
+        + '<div class="wsent skipsen">' + renderSentence(x.t, a, -1, x.lv >= 4, -1, x.ts) + '</div>'
+        + '<div class="wrow" style="color:#a97214">' + qm(skipShort(x)) + '</div>'
+        + '</li>';
+    });
+    html += '</ul></div>';
+  }
+  html += '<div style="margin-top:20px"><button class="btn" id="again">🔄 再来一次（换新题）</button></div>'
+       +  '<div style="margin-top:12px;font-size:14.5px;color:#93a0ad;font-weight:700">重新抽 20 句，和上一轮完全不同</div></div>';
+  app.innerHTML = html;
+  document.getElementById('again').onclick = () => { beep(true); newGame(); };
+}
+
+/* ★错题回顾：整句按「完整正确写法」显示（每个空都填上正确标点），
+   填错的那一处用红框标出 —— 不再出现 ＿ 这类孩子看不懂的占位符 */
+function renderAnswer(x){
+  const n = splitQ(x.t).filter(s => s.type === 'blank').length;
+  const ans = {};
+  for (let i = 0; i < n; i++) ans[i] = KEYS[x.k[i]].a;
+  return renderSentence(x.t, ans, -1, x.lv >= 4, x.bi, x.ts);
+}
+
+newGame();
+</script>
+</body>
+</html>

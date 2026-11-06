@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>查字典 · 闯关小达人</title>
+<style>
+:root{
+  --ink:#2b3440; --blue:#1f6fb2; --green:#22a06b; --red:#d9483b;
+  --orange:#ef8f1e; --purple:#a8549a; --line:#e4ebf2; --soft:#f5f9fc; --gray:#7b8794;
+  --qfont:"KaiTi","楷体","STKaiti","Kaiti SC","SimSun","宋体","Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",serif;
+  --main:#2f7fb5;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Microsoft YaHei","微软雅黑","PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans CJK SC",sans-serif;
+  color:var(--ink);background:linear-gradient(170deg,#e6f4ff 0%,#f2efff 55%,#fff6e5 100%);
+  min-height:100vh;display:flex;justify-content:center;
+  padding:0 10px calc(20px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%;
+}
+#app{width:100%;max-width:520px;padding-top:12px}
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.badge{
+  flex:1;background:#fff;border-radius:18px;padding:9px 13px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;
+}
+.badge .lv{font-size:15.5px;font-weight:800;color:var(--main)}
+.badge .st{font-size:14px;letter-spacing:1px}
+.badge .pg{margin-left:auto;font-size:14px;color:var(--gray);font-weight:700}
+.iconbtn{width:46px;height:46px;flex:0 0 46px;border:0;border-radius:16px;background:#fff;font-size:22px;
+  box-shadow:0 5px 16px rgba(31,111,178,.12);cursor:pointer}
+.iconbtn:active{transform:scale(.94)}
+.card{background:#fff;border-radius:22px;padding:16px 15px;box-shadow:0 8px 24px rgba(43,52,64,.10);margin-bottom:12px}
+.rules{display:grid;gap:7px;margin-bottom:12px}
+.rc{
+  background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 11px;
+  display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 9px;
+}
+.rc .tag{font-size:13.5px;font-weight:800;color:#fff;border-radius:9px;padding:3px 8px;white-space:nowrap;font-family:var(--qfont);background:var(--main)}
+.rc .ar{font-size:15px;font-weight:800;color:var(--ink);white-space:nowrap}
+.rc .eg{grid-column:1/-1;font-family:var(--qfont);font-size:15px;color:#8b95a1;line-height:1.6}
+.rc.hot{border-color:var(--orange);background:#fff8ec;box-shadow:0 0 0 3px rgba(239,143,30,.18)}
+.std{
+  background:#fff;border:2px solid #cfe3f5;border-radius:16px;padding:10px 12px;margin-bottom:12px;
+  text-align:center;font-size:14px;font-weight:800;color:#5b6672;line-height:1.9;
+}
+.song{
+  background:#fff7e8;border:2px dashed #f0b96a;border-radius:18px;padding:12px 14px;
+  text-align:center;font-family:var(--qfont);font-size:17px;font-weight:800;color:#a35c11;
+  line-height:1.95;margin-bottom:12px;
+}
+.dots{display:flex;gap:7px;justify-content:center;margin:2px 0 12px}
+.dot{width:13px;height:13px;border-radius:50%;background:#dfe6ee}
+.dot.ok{background:var(--green)}
+.dot.now{background:var(--orange);animation:bounce .8s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.qtip{font-family:var(--qfont);font-size:14.5px;color:var(--gray);font-weight:700;text-align:center;margin-bottom:8px;line-height:1.6}
+.qtip b{color:var(--orange)}
+.sentence{
+  font-family:var(--qfont);
+  font-size:25px;line-height:2;font-weight:600;text-align:left;
+  word-break:normal;line-break:strict;letter-spacing:0;
+}
+.glue{white-space:nowrap}
+.err{
+  text-decoration:underline wavy var(--orange);text-decoration-skip-ink:none;
+  color:#b5611a;font-weight:700;
+}
+.err.active{background:#fff3e0;border-radius:6px;text-decoration-color:#d9483b}
+.err.mark{text-decoration:underline wavy var(--red);color:var(--red);background:#fdeceb;border-radius:6px}
+.tar{color:#b5611a;font-weight:700;background:#fff3e0;border-radius:6px;padding:0 2px}
+.tar.active{outline:2px solid #d9483b}
+.tar.mark{color:var(--red);background:#fdeceb;border-radius:6px}
+.fixok{color:var(--green);font-weight:700;background:#eafaf2;border-radius:6px}
+.fixbad{color:var(--red);font-weight:800;background:#fdeceb;border-radius:6px;text-decoration:line-through}
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+.opt{
+  flex:0 1 calc(33.33% - 8px);min-width:90px;max-width:150px;min-height:104px;height:auto;
+  border:3px solid #d8e2ec;border-radius:18px;background:#fff;
+  font-family:var(--qfont);
+  font-size:20px;font-weight:700;color:var(--ink);cursor:pointer;
+  box-shadow:0 4px 0 #d8e2ec;transition:transform .1s;padding:9px 8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.35;
+}
+.opt .os{font-size:22px;line-height:1.3;font-weight:800}
+.opts.k-choose .opt{flex:0 1 calc(50% - 6px);max-width:238px;min-height:74px}
+.opts.k-choose.n3 .opt{flex:0 1 calc(33.33% - 7px);max-width:168px;min-height:82px}
+.opts.k-choose.n3 .opt .os{font-size:18px}
+.opts.k-choose .opt .os{font-size:19px;line-height:1.45;text-align:center;word-break:break-word}
+/* 长选项（9 字以上，如整句名言）：缩字号，避免出现“三个臭皮匠，顶个诸葛／亮”这种单字掉行 */
+.opts.k-choose.long .opt .os{font-size:16px;line-height:1.4}
+.opts.k-choose.n3.long .opt .os{font-size:15px}
+.opts.k-judge .opt{flex:0 1 calc(50% - 8px);max-width:190px;min-height:88px}
+.opts.k-char .opt,.opts.k-duo .opt{min-height:92px}
+.py{font-family:"Times New Roman",Georgia,"Segoe UI",serif;letter-spacing:.2px}
+.opts.k-duo .opt .os{font-family:"Times New Roman",Georgia,"Segoe UI",serif;font-size:22px;letter-spacing:.3px}
+.opt .on{font-size:12.5px;line-height:1.2;font-weight:800;color:#93a0ad;letter-spacing:0}
+.opt:active{transform:translateY(3px);box-shadow:0 1px 0 #d8e2ec}
+.opt.good{border-color:var(--green);background:#eafaf2;color:var(--green);box-shadow:0 4px 0 #bfe8d3}
+.opt.good .on{color:#22a06b}
+.opt.bad{border-color:#f1c9c4;background:#fdf2f1;color:#c6a5a1;box-shadow:none}
+.opt.bad .on{color:#c6a5a1}
+.opt[disabled]{cursor:not-allowed}
+.opt[disabled]:not(.good):not(.bad){opacity:.45;box-shadow:none}
+.opttip{text-align:center;font-size:15px;color:#93a0ad;margin-top:10px;font-weight:700}
+.opttip:empty{display:none}
+.grouplabel{text-align:center;font-size:13.5px;color:#aab5c0;font-weight:800;margin-top:14px;letter-spacing:1.5px}
+.blank{
+  display:inline-block;min-width:1.72em;height:1.22em;
+  border-bottom:2.5px solid #c8b49a;background:#fbf4e6;border-radius:3px;
+  vertical-align:-0.16em;margin:0 3px;
+}
+.blank.active{border-bottom-color:#d9483b;background:#fff3e0}
+.blank.mark{border-bottom-color:var(--red);background:#fdeceb}
+.blank.inbr{min-width:1.15em}
+.skipbar{text-align:center;margin-top:14px}
+.skipbtn{
+  display:inline-block;border:2px dashed #c9d3de;border-radius:14px;background:#fbfcfe;
+  padding:8px 16px;font-size:14.5px;font-weight:800;color:#93a0ad;cursor:pointer;
+  font-family:inherit;line-height:1.4;
+}
+.skipbtn:active{background:#f1f5f9;color:#6b7785}
+.skiphint{font-size:12.5px;color:#b3bcc7;font-weight:700;margin-top:6px}
+.nextbtn{
+  display:block;width:100%;margin-top:12px;border:none;border-radius:15px;
+  background:var(--main);color:#fff;font-family:inherit;font-size:16.5px;font-weight:800;
+  padding:12px 0;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.18);
+}
+.nextbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.fb{border-radius:18px;padding:13px 14px;font-size:16.5px;line-height:1.65;font-weight:700;margin-top:14px}
+.fb.ok{background:#eafaf2;color:#16794f;border:2px solid #bfe8d3}
+.fb.no{background:#fdf2f1;color:#b02b1e;border:2px solid #f1c9c4}
+.fb.skip{background:#fff8e6;color:#a97214;border:2px solid #f2ddb0}
+.fb.skip .row b{color:#a97214}
+.fb .row{display:block;margin-top:7px;font-weight:600;font-size:15.5px;color:#4a5560;line-height:1.7}
+.fb .row b{color:#b02b1e}
+.fb.ok .row b{color:#16794f}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.center{text-align:center;padding:26px 16px}
+.big{font-size:29px;font-weight:900;margin:8px 0}
+.emo{font-size:64px;line-height:1}
+.stat{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:16px 0}
+.stat div{background:var(--soft);border-radius:14px;padding:9px 13px;font-size:15px;font-weight:700}
+.btn{
+  border:0;border-radius:22px;padding:15px 30px;font-size:19.5px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,#3aa0ff,var(--main));cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.22);
+}
+.btn:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.22)}
+.pop{animation:pop .5s}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.wronglist{text-align:left}
+.wronglist li{background:#fff8f7;border-left:7px solid #eeb0a8;border-radius:12px;padding:10px 12px;margin-bottom:11px;font-family:var(--qfont);font-size:17px;line-height:1.85}
+.wronglist b{color:#b02b1e}
+.wsent{background:#fff;border:2px solid #f3e0dd;border-radius:11px;padding:9px 10px;
+  font-family:var(--qfont);font-size:20px;line-height:2.05;margin-bottom:7px;text-align:left}
+.wrow{margin-top:5px;font-size:15.5px;line-height:1.8;color:#4a5560;font-weight:600}
+.fly{position:fixed;top:-40px;font-size:30px;pointer-events:none;animation:fall 1.6s linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ====================== 题库（由生成器注入，全部取自真实资料 + 课本核验） ====================== */
+const BANK = {"1": [{"kind": "choose", "cat": "音序查字法", "t": "用音序查「妥」字：先查音序 T，再查音节（　　）。", "fixes": [{"opts": [["to", "to"], ["tou", "tou"], ["tan", "tan"], ["tuo", "tuo"]], "ans": 3, "why": "「妥」的音节是 tuo。查字典时音节不标声调，声调是翻到正文后按一声到四声的顺序找的。", "bad": {"tou": "妥读 tuo，韵母是 uo，不是 ou；音节是 tuo。", "tan": "妥的音节是 tuo，不是 tan。", "to": "妥读 tuo，中间有 u；音节是 tuo，不是 to。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "音序查字法", "t": "用音序查「恒」字：先查音序（　　），再查音节 heng。", "fixes": [{"opts": [["N", "N"], ["H", "H"], ["heng", "heng"], ["G", "G"]], "ans": 1, "why": "「恒」读 heng，音序就是音节第一个字母的大写 H，只写一个字母。", "bad": {"heng": "「heng」是音节，不是音序。音序只写第一个字母的大写。", "G": "恒读 heng，第一个字母是 h，大写是 H，不是 G。", "N": "恒的声母是 h 不是 n，音序应是 H。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「阁」字，先查门部，再查（　　）画。", "fixes": [{"opts": [["5", "5"], ["9", "9"], ["7", "7"], ["6", "6"]], "ans": 3, "why": "「阁」共 9 画，部首「门」3 画，9－3＝6，再查 6 画。", "bad": {"7": "阁共 9 画，门字框 3 画，9－3＝6，再查 6 画。", "9": "9 画是阁的总笔画；要减掉门字框 3 画，再查 6 画。", "5": "再查的是「各」的笔画——各有 6 画，不是 5 画。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "judge", "cat": "综合判断", "t": "音序查字法的顺序是：先找音序，再找音节，最后按页码翻正文。", "fixes": [{"opts": [["对", "对"], ["错", "错"]], "ans": 0, "why": "音序查字法就这三步：找大写字母（音序）→ 找音节、看页码 → 翻到正文找字。", "bad": {"错": "音序查字法就这三步：找大写字母（音序）→ 找音节、看页码 → 翻到正文找字。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "方法选择", "t": "写作文时，想写「萌发」却不知道「meng」这个字怎么写，用（　　）查字法最合适。", "fixes": [{"opts": [["音序查字法", "音序查字法"], ["数笔画查字法", "数笔画查字法"], ["部首查字法", "部首查字法"]], "ans": 0, "why": "知道读音、不知道怎么写——用音序查字法：先找大写字母，再找音节。", "bad": {"部首查字法": "会读不会写，用音序查字法；部首查字法是给「不会读」的字用的。", "数笔画查字法": "数笔画查字法是查难检字用的；会读的字用音序最快。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "音序查字法", "t": "用音序查「厘」字：先查音序（　　），再查音节 li。", "fixes": [{"opts": [["N", "N"], ["li", "li"], ["C", "C"], ["L", "L"]], "ans": 3, "why": "「厘」读 li，音序就是音节第一个字母的大写 L，只写一个字母。", "bad": {"li": "「li」是音节，不是音序。", "N": "厘读 li，声母是 l，不是 n。", "C": "厘的音序是 L，不是 C。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "音序查字法", "t": "用音序查「圣」字：先查音序 S，再查音节（　　）。", "fixes": [{"opts": [["shan", "shan"], ["shen", "shen"], ["seng", "seng"], ["sheng", "sheng"]], "ans": 3, "why": "「圣」的音节是 sheng。查字典时音节不标声调，声调是翻到正文后按一声到四声的顺序找的。", "bad": {"shen": "圣读 sheng，韵母是 eng，不是 en；音节是 sheng。", "seng": "圣的声母是 sh，不是 s；音节是 sheng。", "shan": "圣的韵母是 eng，不是 an；音节是 sheng。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「恒」字，先查忄部，再查（　　）画。", "fixes": [{"opts": [["5", "5"], ["9", "9"], ["7", "7"], ["6", "6"]], "ans": 3, "why": "「恒」共 9 画，部首「忄」3 画，9－3＝6，再查 6 画。", "bad": {"5": "恒共 9 画，竖心旁 3 画，9－3＝6，再查 6 画。", "9": "9 画是恒的总笔画；要减掉竖心旁 3 画，再查 6 画。", "7": "再查的是「亘」的笔画——亘有 6 画，不是 7 画。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「萌」字，应先查（　　）部。", "fixes": [{"opts": [["月", "月"], ["明", "明"], ["艹", "艹"], ["日", "日"]], "ans": 2, "why": "萌＝艹＋明，形旁是草字头，表示草木发芽，查艹部。", "bad": {"明": "「明」是声旁，不是部首。定部首看形旁——萌和草木有关，查草字头。", "日": "「日」只是萌里的一小块，不成部首；应查艹部。", "月": "「月」在萌的右下角，不是它的部首；应查艹部。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「妥」字，应先查（　　）部。", "fixes": [{"opts": [["又", "又"], ["爪", "爪"], ["爫", "爫"], ["女", "女"]], "ans": 3, "why": "妥＝爫＋女，检字表中归女部，查女部，再查 4 画。", "bad": {"爫": "「爫」（爪字头）在妥的上边，但检字表里妥查女部。", "又": "「又」不是妥的部首；妥查女部。", "爪": "妥的部首是女，不是爪。"}}], "src": "三上·园地三·识字加油站（查字典）"}], "2": [{"kind": "choose", "cat": "音序查字法", "t": "用音序查「萌」字：先查音序（　　），再查音节 meng。", "fixes": [{"opts": [["M", "M"], ["N", "N"], ["W", "W"], ["meng", "meng"]], "ans": 0, "why": "「萌」读 meng，音序就是音节第一个字母的大写 M，只写一个字母。", "bad": {"meng": "「meng」是音节；音序只取第一个字母的大写 M。", "N": "萌读 meng，声母是 m，不是 n。", "W": "萌的音序是 M，不是 W。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "judge", "cat": "综合判断", "t": "部首查字法里说的「再查几画」，是数这个字一共有几画。", "fixes": [{"opts": [["对", "对"], ["错", "错"]], "ans": 1, "why": "「再查几画」数的是除去部首以后剩下的笔画，不是总笔画。", "bad": {"对": "「再查几画」数的是除去部首以后剩下的笔画，不是总笔画。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「轴」字，应先查（　　）部。", "fixes": [{"opts": [["由", "由"], ["纟", "纟"], ["车", "车"], ["田", "田"]], "ans": 2, "why": "轴＝车＋由，形旁是车字旁，查车部，再查 5 画。", "bad": {"由": "「由」是声旁，不是部首；轴左边是车字旁，查车部。", "纟": "轴的左边是「车」不是「纟」；应查车部。", "田": "「田」只是轴里的一小块；应查车部。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "judge", "cat": "综合判断", "t": "音序就是音节第一个字母的大写，只写一个字母。", "fixes": [{"opts": [["对", "对"], ["错", "错"]], "ans": 0, "why": "比如「阁」读 ge，音序只写 G；写成 ge 就成了音节，写成小写 g 又没大写。", "bad": {"错": "比如「阁」读 ge，音序只写 G；写成 ge 就成了音节，写成小写 g 又没大写。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「阁」字，应先查（　　）部。", "fixes": [{"opts": [["口", "口"], ["广", "广"], ["门", "门"], ["各", "各"]], "ans": 2, "why": "阁＝门＋各，半包围结构查外框，应查门部。", "bad": {"各": "「各」是声旁，不是部首；阁是半包围结构，查外面的「门」。", "口": "「口」只是阁里的一小块；应查门部。", "广": "广字头一般用在唐、厅这类字上；阁查门部。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "judge", "cat": "综合判断", "t": "一个字既不会读，又看不出部首，可以用数笔画查字法来查。", "fixes": [{"opts": [["对", "对"], ["错", "错"]], "ans": 0, "why": "这叫「难检字」，字典里有专门的难检字笔画索引，按笔画数就能查到。", "bad": {"错": "这叫「难检字」，字典里有专门的难检字笔画索引，按笔画数就能查到。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "方法选择", "t": "读书时不认识「阁」字，但看得出它是门字框，用（　　）查字法。", "fixes": [{"opts": [["部首查字法", "部首查字法"], ["音序查字法", "音序查字法"], ["数笔画查字法", "数笔画查字法"]], "ans": 0, "why": "不会读、但能看出部首——用部首查字法：先定部首，再数剩下的笔画。", "bad": {"音序查字法": "不知道读音就用不了音序查字法；能看出部首，用部首查字法。", "数笔画查字法": "看得出部首就不必数笔画，直接用部首查字法更快。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「恒」字，应先查（　　）部。", "fixes": [{"opts": [["忄", "忄"], ["日", "日"], ["心", "心"], ["亘", "亘"]], "ans": 0, "why": "恒＝忄＋亘，形旁是竖心旁（和心理、情感有关），查忄部。", "bad": {"亘": "「亘」是声旁，不是部首；恒左边是竖心旁，查忄部。", "心": "竖心旁写成「忄」，检字表里是忄部，不是心部。", "日": "「日」只是恒里的一小块；应查忄部。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "judge", "cat": "综合判断", "t": "「厘」字的部首是「里」部。", "fixes": [{"opts": [["对", "对"], ["错", "错"]], "ans": 1, "why": "「里」是声旁，不表意思；厘的外框是「厂」，要查厂部，再查 7 画。", "bad": {"对": "「里」是声旁，不表意思；厘的外框是「厂」，要查厂部，再查 7 画。"}}], "src": "三上·园地三·识字加油站（查字典）"}], "3": [{"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「霜」字，先查雨部，再查（　　）画。", "fixes": [{"opts": [["17", "17"], ["8", "8"], ["9", "9"], ["11", "11"]], "ans": 2, "why": "「霜」共 17 画，部首「雨」8 画，17－8＝9，再查 9 画。", "bad": {"8": "8 画是部首「雨」的笔画；再查的是「相」，有 9 画。", "17": "17 画是霜的总笔画；要减掉雨字头 8 画，再查 9 画。", "11": "霜共 17 画，雨字头 8 画，17－8＝9，再查 9 画。"}}], "src": "三上·第4课《山行》"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「厘」字，应先查（　　）部。", "fixes": [{"opts": [["广", "广"], ["里", "里"], ["厂", "厂"], ["土", "土"]], "ans": 2, "why": "厘＝厂＋里，外框是厂字旁，查厂部，再查 7 画。", "bad": {"里": "「里」是声旁，不是部首；厘的外框是「厂」，查厂部。", "广": "厘的外框是「厂」不是「广」，两笔的字厂才是它的部首。", "土": "厘里没有「土」；应查厂部。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "方法选择", "t": "遇到一个字，既不会读，又看不出部首，可以用（　　）查字法。", "fixes": [{"opts": [["部首查字法", "部首查字法"], ["数笔画查字法", "数笔画查字法"], ["音序查字法", "音序查字法"]], "ans": 1, "why": "音序要会读、部首要看得出；两样都没有的「难检字」，用数笔画查字法。", "bad": {"音序查字法": "不会读就没法找音序；这时要用数笔画查字法。", "部首查字法": "看不出部首就用不了部首查字法；这时用数笔画查字法。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "音序查字法", "t": "用音序查「阁」字：先查音序 G，再查音节（　　）。", "fixes": [{"opts": [["guo", "guo"], ["gei", "gei"], ["ge", "ge"], ["ga", "ga"]], "ans": 2, "why": "「阁」的音节是 ge。查字典时音节不标声调，声调是翻到正文后按一声到四声的顺序找的。", "bad": {"gei": "阁读 ge，韵母是 e，不是 ei；音节是 ge。", "guo": "阁的音节是 ge，不是 guo。", "ga": "阁的韵母是 e，不是 a；音节是 ge。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "judge", "cat": "综合判断", "t": "《新华字典》的汉语拼音音节索引里，每个音节都标着声调。", "fixes": [{"opts": [["对", "对"], ["错", "错"]], "ans": 1, "why": "新华字典的音节索引只列 ge 这样的音节，不标声调；翻到正文那一页后，再按一声到四声的顺序去找字。", "bad": {"对": "新华字典的音节索引只列 ge 这样的音节，不标声调；翻到正文那一页后，再按一声到四声的顺序去找字。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「萌」字，先查艹部，再查（　　）画。", "fixes": [{"opts": [["11", "11"], ["9", "9"], ["5", "5"], ["8", "8"]], "ans": 3, "why": "「萌」共 11 画，部首「艹」3 画，11－3＝8，再查 8 画。", "bad": {"9": "萌共 11 画，草字头 3 画，11－3＝8，再查 8 画。", "11": "11 画是萌的总笔画；要减去部首 3 画，再查 8 画。", "5": "再查的是「明」的笔画——明有 8 画，不是 5 画。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "音序查字法", "t": "用音序查「轴」字：先查音序 Z，再查音节（　　）。", "fixes": [{"opts": [["zou", "zou"], ["zhuo", "zhuo"], ["zhou", "zhou"], ["zhu", "zhu"]], "ans": 2, "why": "「轴」的音节是 zhou。查字典时音节不标声调，声调是翻到正文后按一声到四声的顺序找的。", "bad": {"zou": "轴读 zhou，声母是 zh，不是 z；音节是 zhou。", "zhuo": "轴的韵母是 ou，不是 uo；音节是 zhou。", "zhu": "轴的韵母是 ou；音节是 zhou，不是 zhu。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "音序查字法", "t": "用音序查「培」字：先查音序（　　），再查音节 pei。", "fixes": [{"opts": [["pei", "pei"], ["P", "P"], ["B", "B"], ["Q", "Q"]], "ans": 1, "why": "「培」读 pei，音序就是音节第一个字母的大写 P，只写一个字母。", "bad": {"pei": "「pei」是音节；音序只写第一个字母的大写 P。", "B": "培读 pei，声母是 p，不是 b。", "Q": "培的音序是 P，不是 Q。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "音序查字法", "t": "用音序查「轴」字：先查音序（　　），再查音节 zhou。", "fixes": [{"opts": [["Z", "Z"], ["zh", "zh"], ["C", "C"], ["zhou", "zhou"]], "ans": 0, "why": "「轴」读 zhou，音序就是音节第一个字母的大写 Z，只写一个字母。", "bad": {"zh": "音序只写一个字母。「轴」拼音 zhou，第一个字母是 z，大写 Z。", "zhou": "「zhou」是音节，不是音序。", "C": "轴的声母是 zh，第一个字母是 z，大写 Z，不是 C。"}}], "src": "三上·园地三·识字加油站（查字典）"}], "4": [{"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「轴」字，先查车部，再查（　　）画。", "fixes": [{"opts": [["9", "9"], ["6", "6"], ["4", "4"], ["5", "5"]], "ans": 3, "why": "「轴」共 9 画，部首「车」4 画，9－4＝5，再查 5 画。", "bad": {"4": "4 画是部首「车」的笔画；再查的是「由」，有 5 画。", "9": "9 画是轴的总笔画；要减掉车字旁 4 画，再查 5 画。", "6": "轴共 9 画，车字旁 4 画，9－4＝5，再查 5 画。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「培」字，先查土部，再查（　　）画。", "fixes": [{"opts": [["5", "5"], ["8", "8"], ["7", "7"], ["11", "11"]], "ans": 1, "why": "「培」共 11 画，部首「土」3 画，11－3＝8，再查 8 画。", "bad": {"7": "培共 11 画，提土旁 3 画，11－3＝8，再查 8 画。", "11": "11 画是培的总笔画；要减掉提土旁 3 画，再查 8 画。", "5": "再查的是「咅」的笔画——咅有 8 画，不是 5 画。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "音序查字法", "t": "用音序查「装」字：先查音序 Z，再查音节（　　）。", "fixes": [{"opts": [["zhuang", "zhuang"], ["zhang", "zhang"], ["zhuan", "zhuan"], ["zuang", "zuang"]], "ans": 0, "why": "「装」的音节是 zhuang。查字典时音节不标声调，声调是翻到正文后按一声到四声的顺序找的。", "bad": {"zhuan": "装读 zhuang，韵母是 uang，不是 uan；音节是 zhuang。", "zuang": "装的声母是 zh，不是 z；音节是 zhuang。", "zhang": "装的韵母是 uang，不是 ang；音节是 zhuang。"}}], "src": "三上·第1课《大青树下的小学》"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「培」字，应先查（　　）部。", "fixes": [{"opts": [["咅", "咅"], ["立", "立"], ["口", "口"], ["土", "土"]], "ans": 3, "why": "培＝土＋咅，形旁是提土旁（和泥土、栽种有关），查土部。", "bad": {"咅": "「咅」是声旁，不是部首；培左边是提土旁，查土部。", "口": "「口」只是培里的一小块；应查土部。", "立": "「立」在培的右上，不是部首；应查土部。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "音序查字法", "t": "用音序查「阁」字：先查音序（　　），再查音节 ge。", "fixes": [{"opts": [["J", "J"], ["G", "G"], ["ge", "ge"], ["H", "H"]], "ans": 1, "why": "「阁」读 ge，音序就是音节第一个字母的大写 G，只写一个字母。", "bad": {"ge": "「ge」是音节；音序要写大写字母 G。", "J": "阁读 ge，声母是 g，不是 j。", "H": "阁的音序是 G，不是 H。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "方法选择", "t": "用部首查字法查字，第一步要先（　　）。", "fixes": [{"opts": [["数出这个字一共有几画", "数出这个字一共有几画"], ["确定这个字查什么部首", "确定这个字查什么部首"], ["翻到正文的页码", "翻到正文的页码"]], "ans": 1, "why": "部首查字法三步：①定部首，数部首几画 → ②在检字表里数「除去部首还剩几画」→ ③按页码翻正文。", "bad": {"数出这个字一共有几画": "先数总画数是数笔画查字法；部首查字法第一步是定部首。", "翻到正文的页码": "翻页码是最后一步；第一步要先定部首。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "部首查字法", "t": "用部首查字法查「厘」字，先查厂部，再查（　　）画。", "fixes": [{"opts": [["9", "9"], ["2", "2"], ["6", "6"], ["7", "7"]], "ans": 3, "why": "「厘」共 9 画，部首「厂」2 画，9－2＝7，再查 7 画。", "bad": {"6": "厘共 9 画，厂字旁 2 画，9－2＝7，再查 7 画。", "9": "9 画是厘的总笔画；要减掉厂字旁 2 画，再查 7 画。", "2": "2 画是部首「厂」的笔画，不是再查的笔画。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "judge", "cat": "综合判断", "t": "用部首查字法查「萌」，先查艹部，再查 8 画。", "fixes": [{"opts": [["对", "对"], ["错", "错"]], "ans": 0, "why": "萌共 11 画，草字头 3 画，11－3＝8，所以再查 8 画。", "bad": {"错": "萌共 11 画，草字头 3 画，11－3＝8，所以再查 8 画。"}}], "src": "三上·园地三·识字加油站（查字典）"}, {"kind": "choose", "cat": "音序查字法", "t": "用音序查「霜」字：先查音序（　　），再查音节 shuang。", "fixes": [{"opts": [["S", "S"], ["X", "X"], ["sh", "sh"], ["shuang", "shuang"]], "ans": 0, "why": "「霜」读 shuang，音序就是音节第一个字母的大写 S，只写一个字母。", "bad": {"sh": "音序只写一个字母。「霜」拼音 shuang，第一个字母是 s，大写 S。", "shuang": "「shuang」是音节，不是音序。", "X": "霜的声母是 sh，第一个字母是 s，大写 S，不是 X。"}}], "src": "三上·第4课《山行》"}]};
+const CONFIG = {"title": "查字典 · 闯关小达人", "color": "#2f7fb5", "badge": "查字典 · 闯关", "totalTip": "共 37 题", "introEmoji": "📖", "introBig": "查字典闯关 · 开始", "finishTitle": "音序、部首都会查，字典再也难不住 ⭐⭐⭐⭐", "levels": [{"n": 1, "name": "第一关 · 一星", "stars": "⭐", "emoji": "🔤", "color": "#22a06b", "tip": "音序查字法 · 找准那个大写字母"}, {"n": 2, "name": "第二关 · 二星", "stars": "⭐⭐", "emoji": "🚀", "color": "#1f6fb2", "tip": "找音节 · 记住音节不带声调"}, {"n": 3, "name": "第三关 · 三星", "stars": "⭐⭐⭐", "emoji": "👑", "color": "#ef8f1e", "tip": "部首查字法 · 认准部首看形旁"}, {"n": 4, "name": "第四关 · 四星", "stars": "⭐⭐⭐⭐", "emoji": "🏆", "color": "#a8549a", "tip": "数清再查几画 · 三种查字法综合"}, {"n": 5, "name": "回炉关 · 再练一遍", "stars": "🔁", "emoji": "🔥", "color": "#c2622f", "tip": "把跳过的重新做一遍 —— 不看答案"}], "kindlabel": {"duo": "正确读音", "char": "选字写对", "judge": "判断对错", "choose": "正确选项"}, "rules_html": "<div class=\"std\">查字典三种方法，先分清什么时候用哪一种：<br><b>① 音序查字法</b>：会读不会写 → 找大写字母（音序）→ 找音节（<b>不带声调</b>）→ 翻页码<br><b>② 部首查字法</b>：不会读、能看出部首 → 定部首 → 数<b>除去部首还剩几画</b> → 翻页码<br><b>③ 数笔画查字法</b>：既不会读又看不出部首的“难检字” → 按总笔画数查</div>", "song_html": "<div class=\"song\">查字典，有诀窍：<br>会读不会写，音序查字好；<br>先找大写字母，再找音节瞧；<br>音节不带调，翻页按声调；<br>不会读，看部首，除去部首数几画；<br>难检字，数笔画，字典翻到就找到。</div>", "intro_html": "<b>①</b> 判断题：这句话说得<b>对不对</b>，点「对」或「错」。<br><b>②</b> 选择题：读读题目，选出<b>正确的一项</b>（音序／音节／部首／再查几画）。<br><b>③</b> 本题生字都来自课本 <b>园地三·识字加油站</b>：恒 圣 萌 妥 轴 培 阁 厘。<br><b>④</b> 选错了会告诉你<b>为什么不对</b>，看清再选。<br><b>⑤</b> 不会就点「⏭ 跳过」，先看答案，最后还有「🔁 回炉关」。<br><b>⑥</b> 选项位置<b>每次打乱</b>，不能靠记位置蒙对。", "perLevel": 10};
+const RULES_HTML = `<div class="std">查字典三种方法，先分清什么时候用哪一种：<br><b>① 音序查字法</b>：会读不会写 → 找大写字母（音序）→ 找音节（<b>不带声调</b>）→ 翻页码<br><b>② 部首查字法</b>：不会读、能看出部首 → 定部首 → 数<b>除去部首还剩几画</b> → 翻页码<br><b>③ 数笔画查字法</b>：既不会读又看不出部首的“难检字” → 按总笔画数查</div>`;
+const SONG_HTML = `<div class="song">查字典，有诀窍：<br>会读不会写，音序查字好；<br>先找大写字母，再找音节瞧；<br>音节不带调，翻页按声调；<br>不会读，看部首，除去部首数几画；<br>难检字，数笔画，字典翻到就找到。</div>`;
+const INTRO_HTML = `<b>①</b> 判断题：这句话说得<b>对不对</b>，点「对」或「错」。<br><b>②</b> 选择题：读读题目，选出<b>正确的一项</b>（音序／音节／部首／再查几画）。<br><b>③</b> 本题生字都来自课本 <b>园地三·识字加油站</b>：恒 圣 萌 妥 轴 培 阁 厘。<br><b>④</b> 选错了会告诉你<b>为什么不对</b>，看清再选。<br><b>⑤</b> 不会就点「⏭ 跳过」，先看答案，最后还有「🔁 回炉关」。<br><b>⑥</b> 选项位置<b>每次打乱</b>，不能靠记位置蒙对。`;
+const KINDLABEL = {"duo": "正确读音", "char": "选字写对", "judge": "判断对错", "choose": "正确选项"};
+
+/* ====================== 常量 ====================== */
+const PER_LEVEL = CONFIG.perLevel || 5;
+const LAST_LEVEL = CONFIG.levels.length;   // 含回炉关
+const TYPES = CONFIG.cats || [];
+function typeName(t){ const x = TYPES.find(y => y[0]===t); return x ? x[1] : '题'; }
+
+/* ====================== 工具 ====================== */
+const app = document.getElementById('app');
+let muted = false, audioCtx = null;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; };
+function beep(ok){
+  if (muted) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination); o.type='sine';
+    if (ok){ o.frequency.setValueAtTime(660,t); o.frequency.setValueAtTime(920,t+0.11); }
+    else  { o.frequency.setValueAtTime(320,t); o.frequency.setValueAtTime(210,t+0.14); }
+    g.gain.setValueAtTime(0.0001,t); g.gain.setValueAtTime(0.15,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.36);
+    o.start(t); o.stop(t+0.4);
+  }catch(e){}
+}
+function flyStars(n){
+  for (let i=0;i<n;i++){
+    const s=document.createElement('div'); s.className='fly'; s.textContent='⭐';
+    s.style.left=(Math.random()*88+6)+'vw'; s.style.animationDelay=(Math.random()*0.7)+'s';
+    document.body.appendChild(s); setTimeout(()=>s.remove(),2500);
+  }
+}
+function splitQ(t){
+  // {0} 与题干里的「（　　）」括号都视作空位：答完/看答案时能把答案填进括号里
+  const out=[]; const re=/\{([0-9])\}|（([ \u3000]*)）/g; let last=0,m;
+  while((m=re.exec(t))!==null){
+    if(m.index>last) out.push({type:'text',v:t.slice(last,m.index)});
+    out.push({type:'blank', i:m[1]!==undefined?+m[1]:0, br:m[2]!==undefined});
+    last=m.index+m[0].length;
+  }
+  if(last<t.length) out.push({type:'text',v:t.slice(last)});
+  return out;
+}
+function hasBlank(t){ return splitQ(t).some(s=>s.type==='blank'); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const NO_HEAD = '。，、；：？！）］｝〉》」』】%‰℃';
+
+/* 题干渲染（逐字；选字＝空＋绿字；多音字＝高亮字＋读音；判断/选择＝纯文本） */
+function renderSentence(q, answers, bi, markBi){
+  const items=[];
+  splitQ(q.t).forEach(sg=>{
+    if(sg.type==='blank'){
+      const a = answers ? answers[0] : null;
+      const wrap = h => sg.br ? '（'+h+'）' : h;
+      if(q.kind==='duo'){
+        let cls='tar'; if(bi===0) cls+=' active'; if(markBi===0) cls+=' mark';
+        let h='<span class="'+cls+'">'+esc(q.tar)+'</span>';
+        if(a){ h += '<span class="py '+(a.right?'fixok':'fixbad')+'">'+esc(a.f)+'</span>'; }
+        items.push({blank:true,c:'',h:wrap(h)}); return;
+      }
+      // char / choose / judge：空位
+      if(a){
+        items.push({blank:true,c:'',h:wrap('<span class="'+(a.right?'fixok':'fixbad')+'">'+esc(a.f)+'</span>')}); return;
+      }
+      let cls='blank'+(sg.br?' inbr':''); if(bi===0) cls+=' active'; if(markBi===0) cls+=' mark';
+      // choose 题的空位按「正确答案长度」拉宽，否则 7~10 字的诗句名言只留一个字的方格，像只需填一个字
+      let sty='';
+      if(q.kind==='choose' && q.fixes && q.fixes[0]){
+        const g=q.fixes[0].opts[q.fixes[0].ans];
+        const L=Math.min(Math.max((g?g[1]:'').length,2),6);
+        sty=' style="min-width:'+(L*1.02+0.5).toFixed(2)+'em"';
+      }
+      items.push({blank:true,c:'',h:wrap('<span class="'+cls+'"'+sty+'></span>')}); return;
+    }
+    for(const ch of sg.v) items.push({blank:false,c:ch,h:esc(ch)});
+  });
+  const n=items.length, same=new Array(n).fill(false);
+  for(let k=0;k<n;k++){
+    if(k>0 && (items[k].blank || NO_HEAD.indexOf(items[k].c)>=0)) same[k-1]=true;
+  }
+  let html='',buf='',cnt=0;
+  for(let k=0;k<n;k++){
+    buf+=items[k].h; cnt++;
+    if(k+1<n && same[k]) continue;
+    html += (cnt>1)?'<span class="glue">'+buf+'</span>':buf;
+    buf=''; cnt=0;
+  }
+  return html;
+}
+function correctAnswers(q){
+  const f=q.fixes[0];
+  return [{f:f.opts[f.ans][1], right:true}];
+}
+/* 出题：每关每类各至少 1 题 */
+let lastIds=[];
+function pick(level){
+  const pool = BANK[level].map((q,idx)=>{ const o=q; o.lv=level; o.id=level+'-'+idx; return o; });
+  const fresh = shuffle(pool.filter(q=>lastIds.indexOf(q.id)<0));
+  const rest  = shuffle(pool.filter(q=>lastIds.indexOf(q.id)>=0));
+  const picked=[];
+  const types=[...new Set(fresh.map(q=>q.cat))];
+  types.forEach(tp=>{ const one=fresh.filter(q=>q.cat===tp)[0]; if(one&&picked.indexOf(one)<0) picked.push(one); });
+  fresh.forEach(q=>{ if(picked.length<PER_LEVEL && picked.indexOf(q)<0) picked.push(q); });
+  rest.forEach(q=>{ if(picked.length<PER_LEVEL && picked.indexOf(q)<0) picked.push(q); });
+  return shuffle(picked).slice(0,PER_LEVEL);
+}
+/* 状态 */
+let S=null;
+function newGame(){
+  if(S && S.round && S.round.length) lastIds = S.round.slice();
+  S={ level:1, queue:[], qi:0, bi:0, answers:[], wrong:0, wrongLog:[], skipLog:[], round:[],
+      skipping:false, reviewSee:0, start:Date.now(), stage:'intro' };
+  S.queue=pick(1); S.round=S.queue.map(q=>q.id); render();
+}
+/* 渲染 */
+function render(){
+  if(S.stage==='intro'){ renderIntro(); return; }
+  const L=CONFIG.levels[S.level-1]; const q=S.queue[S.qi]; const n=q.fixes.length;
+  const fi=q.fixes[0]; S.hot=q.cat; const total=S.queue.length;
+  let html='<div class="topbar"><div class="badge">'
+    +'<span class="lv">'+L.name+'</span><span class="st">'+L.stars+'</span>'
+    +'<span class="pg">'+L.emoji+' 第 '+(S.qi+1)+'/'+total+'</span></div>'
+    +'<button class="iconbtn" id="mute">'+(muted?'🔇':'🔊')+'</button></div>';
+  html += RULES_HTML;
+  const label = KINDLABEL[q.kind] || '选一选';
+  const tip = (q.kind==='duo')
+     ? '句中<b>橙色高亮</b>的那个字，应该读什么音？点下面的读音。'
+     : (q.kind==='judge')
+     ? '这句话说得<b>对不对</b>？点「对」或「错」。'
+     : (q.kind==='choose')
+     ? (CONFIG.tipChoose || '读读这句话，选出<b>正确的一项</b>。')
+     : '句子里<b>空着</b>的地方，应该填哪个字 / 选哪一项？';
+  html+='<div class="card"><div class="qtip">'+tip+'</div><div class="dots">';
+  for(let i=0;i<total;i++) html+='<span class="dot '+(i<S.qi?'ok':(i===S.qi?'now':''))+'"></span>';
+  html+='</div><div class="sentence" id="sen">'+renderSentence(q,S.answers,S.bi,-1)+'</div>'
+    +'<div class="grouplabel">'+label+'</div><div class="opts k-'+q.kind+' n'+fi.opts.length+((function(){
+        let mx=0; fi.opts.forEach(o=>{ if(o[0].length>mx) mx=o[0].length; }); return mx>=9?' long':'';
+      })())+'" id="opts">';
+  const optOrder = shuffle(fi.opts.map((_, i) => i));
+  optOrder.forEach((idx)=>{
+    const o = fi.opts[idx];
+    const bad = S.wrongOpts && S.wrongOpts.indexOf(idx)>-1;
+    html+='<button class="opt'+(bad?' bad':'')+'" data-idx="'+idx+'"'+(bad?' disabled':'')+'>'
+      +'<span class="os">'+esc(o[0])+'</span></button>';
+  });
+  const skipTxt=(S.stage==='review')?'👀 再看一遍答案':'⏭ 跳过这题，直接看答案';
+  const skipHint=(S.stage==='review')?'别急，想不出来就看一眼，结束页还会再列出来':'不会做也没关系，先看看正确答案，最后还有一关「🔁 回炉关」让你不看答案再做一遍';
+  html+='</div><div class="opttip"></div>'
+    +'<div id="fb"></div>'
+    +'<div class="skipbar"><button class="skipbtn" id="skipbtn">'+skipTxt+'</button>'
+    +'<div class="skiphint">'+skipHint+'</div></div></div>';
+  app.innerHTML=html;
+  document.getElementById('mute').onclick=()=>{ muted=!muted; render(); };
+  document.getElementById('skipbtn').onclick=skipQuestion;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.onclick=()=>choose(+b.dataset.idx,b); });
+}
+/* ⏭ 跳过 */
+function skipQuestion(){
+  if(S.skipping) return;
+  S.skipping=true;
+  const q=S.queue[S.qi];
+  if(S.stage==='review') S.reviewSee=(S.reviewSee||0)+1;
+  else if(!S.skipLog.some(x=>x.id===q.id)) S.skipLog.push({id:q.id,q:q,src:q.src,lv:S.level});
+  const a=correctAnswers(q); S.answers=a; S.bi=-1; S.wrongOpts=null; S.hot=null;
+  const sen=document.getElementById('sen'); if(sen){ sen.innerHTML=renderSentence(q,a,-1,-1); }
+  const correctIdx=q.fixes[0].ans;
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{
+    b.disabled=true;
+    if(+b.dataset.idx===correctIdx) b.classList.add('good');   // 看答案时把正确选项标绿
+  });
+  const tip=document.querySelectorAll('.opttip')[0];
+  const pos = hasBlank(q.t) ? '上面' : '下面';
+  if(tip) tip.innerHTML=(S.stage==='review'?'这一题先看答案':'这一题先跳过')+'，正确答案在'+pos+'（绿色就是答案）';
+  document.querySelectorAll('.skipbar')[0].style.display='none';
+  const fb=document.getElementById('fb');
+  const good=fi_good(q);
+  fb.innerHTML='<div class="fb skip">'
+    +(S.stage==='review'?'👀 再看一遍：正确答案在'+pos:'⏭ 跳过这题，正确答案在'+pos)
+    +'<span class="row">正确答案：<b class="'+(q.kind==='duo'?'py':'')+'" style="color:#16794f">'+esc(good[0])+'</b>　'+q.fixes[0].why+'</span>'
+    +(q.src?'<span class="row">📖 '+esc(q.src)+'</span>':'')
+    +'<button class="nextbtn" id="skipnext">看懂了，下一题 →</button>'
+    +'<span class="row" style="text-align:center;color:#b3bcc7;font-size:14px">不点也没关系，几秒后自己往下走</span></div>';
+  document.getElementById('skipnext').onclick=skipDone;
+  S.skipTimer=setTimeout(skipDone,3800);
+}
+function fi_good(q){ const f=q.fixes[0]; return f.opts[f.ans]; }
+function skipDone(){
+  if(!S.skipping) return;
+  S.skipping=false;
+  if(S.skipTimer){ clearTimeout(S.skipTimer); S.skipTimer=null; }
+  nextQuestion();
+}
+/* 答题 */
+function choose(idx, btn){
+  const q=S.queue[S.qi]; const fi=q.fixes[0];
+  const right=fi.ans; const fb=document.getElementById('fb');
+  if(idx===right){
+    const good=fi.opts[right];
+    S.answers[0]={f:good[1], right:true};
+    S.wrongOpts=null; S.hot=null;
+    beep(true); btn.classList.add('good');
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'),b=>{ b.disabled=true; });
+    fb.innerHTML='<div class="fb ok">✅ 答对啦！<span class="row">'+esc(good[0])+'　'+fi.why+'</span>'
+      +'<span class="row">马上进入下一题……</span></div>';
+    setTimeout(nextQuestion,1000);
+  } else {
+    S.wrong+=1;
+    S.wrongOpts=(S.wrongOpts||[]).concat(idx); S.hot=q.cat;
+    const badTxt=(fi.bad && fi.bad[fi.opts[idx][0]]) || '再读读这句，看哪里不对。';
+    S.wrongLog.push({q:q, picked:fi.opts[idx][0], ans:fi.opts[right][0], why:fi.why, bad:badTxt, lv:S.level});
+    beep(false);
+    btn.classList.add('bad','shake'); btn.disabled=true;
+    const sen=document.getElementById('sen'); if(sen) sen.classList.add('shake');
+    fb.innerHTML='<div class="fb no">❌ 不对，看清下面的话，再选一次'
+      +'<span class="row">你选的是：<b>'+esc(fi.opts[idx][0])+'</b>　不对。</span>'
+      +'<span class="row">为什么不对：<b>'+esc(badTxt)+'</b></span>'
+      +'<span class="row">应该选：<b style="color:#16794f">'+esc(fi.opts[right][0])+'</b>　'+esc(fi.why)+'</span></div>';
+  }
+}
+function nextQuestion(){
+  S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null;
+  if(S.qi+1<S.queue.length){ S.qi+=1; render(); }
+  else levelClear();
+}
+function levelClear(){
+  const L=CONFIG.levels[S.level-1];
+  beep(true); flyStars(12);
+  const reviewing=(S.stage==='review'); const cnt=S.queue.length;
+  let html='<div class="card center pop"><div class="emo">'+L.emoji+'</div>'
+    +'<div class="big">'+L.stars+' '+L.name+(reviewing?' 完成！':' 通关！')+'</div>';
+  const sk = reviewing ? (S.reviewSee||0) : S.skipLog.filter(x=>x.lv===S.level).length;
+  html += sk
+    ? '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 '+cnt+' 题完成，其中 <b style="color:#a97214">'+sk+' 题</b>是看答案过的。</div>'
+    : '<div style="font-size:16.5px;color:#5b6672;font-weight:700">这一关 '+cnt+' 题全部自己做对，太厉害了！</div>';
+  html += '<div class="stat"><div>📌 '+L.tip+'</div></div>';
+  if(S.level<LAST_LEVEL){
+    const NL=CONFIG.levels[S.level];
+    html += '<div style="font-size:17px;font-weight:800;color:'+NL.color+'">马上进入 '+NL.name+' ……</div>';
+  } else if(!reviewing && S.skipLog.length){
+    html += '<div style="font-size:17px;font-weight:800;color:#c2622f">🔥 别急着走 —— 马上进入「回炉关」！</div>'
+      +'<div style="margin-top:10px;font-size:15px;font-weight:700;color:#5b6672;line-height:1.8">'
+      +'刚才你<b style="color:#a97214">跳过 '+S.skipLog.length+' 题</b>，<br>这一关把它们<b>重新排一遍</b>，<b style="color:#c2622f">不看答案</b>，自己做做看！</div>';
+  }
+  app.innerHTML=html+'</div>';
+  setTimeout(advance,1900);
+}
+function advance(){
+  if(S.level<LAST_LEVEL && BANK[S.level+1]){
+    S.level+=1; S.qi=0; S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null;
+    S.queue=pick(S.level); S.round=S.round.concat(S.queue.map(q=>q.id)); render();
+  } else if(S.stage!=='review' && S.skipLog.length){ startReview(); }
+  else finish();
+}
+function startReview(){
+  const seen={};
+  S.queue=S.skipLog.filter(x=>{ if(seen[x.id]) return false; seen[x.id]=1; return true; }).map(x=>x.q);
+  if(!S.queue.length){ finish(); return; }
+  S.stage='review'; S.level=CONFIG.levels.length; S.qi=0; S.bi=0; S.answers=[]; S.wrongOpts=null; S.hot=null; S.skipping=false; S.reviewSee=0;
+  render();
+}
+/* 结束页 */
+function finish(){
+  const sec=Math.round((Date.now()-S.start)/1000);
+  const mm=String(Math.floor(sec/60)).padStart(2,'0'), ss=String(sec%60).padStart(2,'0');
+  beep(true); flyStars(28);
+  const seen={};
+  // 同一道题即使选错多个选项，也只在错题回顾里列一次（保留第一次的错误选项）
+  const uniq=S.wrongLog.filter(x=>{ if(seen[x.q.t]) return false; seen[x.q.t]=1; return true; });
+  let html='<div class="card center pop"><div class="emo">🏆</div><div class="big">闯关成功！</div>'
+    +'<div style="font-size:17px;font-weight:700;color:#5b6672">'+CONFIG.finishTitle
+    + (S.skipLog.length?'　＋ 🔁 回炉关完成':'')+'</div>'
+    +'<div class="stat"><div>⏱ '+mm+':'+ss+'</div><div>❌ 失误 '+S.wrong+' 次</div><div>📝 改错 '+uniq.length+' 处</div>'
+    + (S.skipLog.length?'<div>⏭ 跳过 '+S.skipLog.length+' 题</div>':'')+'</div>'
+    + SONG_HTML;
+  if(uniq.length){
+    html+='<div class="wronglist" style="margin-top:16px"><div style="font-size:16.5px;font-weight:800;margin-bottom:8px">🔍 错题回顾（共 '+uniq.length+' 处）</div><ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    uniq.forEach(x=>{
+      const a=correctAnswers(x.q); a[0].right=false;
+      html+='<li><div class="wsent">'+renderSentence(x.q,a,-1,0)+'</div>'
+        +'<div class="wrow"><b style="color:#b02b1e">你刚才选的“'+esc(x.picked)+'”不对</b></div>'
+        +'<div class="wrow" style="color:#b02b1e">为什么不对：'+esc(x.bad)+'</div>'
+        +'<div class="wrow"><b style="color:#16794f">这样才对：'+esc(x.ans)+'</b>　'+esc(x.why)+'</div></li>';
+    });
+    html+='</ul></div>';
+  }
+  if(S.skipLog.length){
+    html+='<div class="wronglist" style="margin-top:16px;border-color:#f2ddb0;background:#fffdf7"><div style="font-size:16.5px;font-weight:800;margin-bottom:8px;color:#a97214">⏭ 跳过的题目（共 '+S.skipLog.length+' 题 · 已在 🔥 回炉关重做 · 再读一遍）</div><ul style="padding-left:0;list-style:none;margin:10px 0 0">';
+    S.skipLog.forEach(x=>{
+      const a=correctAnswers(x.q);
+      html+='<li><div class="wsent">'+renderSentence(x.q,a,-1,-1)+'</div></li>';
+    });
+    html+='</ul></div>';
+  }
+  html+='<div style="margin-top:20px"><button class="btn" id="again">🔄 再来一遍</button></div>'
+    +'<div style="margin-top:12px;font-size:14.5px;color:#93a0ad;font-weight:700">题目和选项顺序都会重新打乱，适合再练一遍</div></div>';
+  app.innerHTML=html;
+  document.getElementById('again').onclick=()=>{ beep(true); newGame(); };
+}
+/* 首页 */
+function renderIntro(){
+  app.innerHTML='<div class="topbar"><div class="badge"><span class="lv">'+CONFIG.badge+'</span><span class="st">⭐⭐⭐⭐</span>'
+    +'<span class="pg">'+CONFIG.totalTip+'</span></div><button class="iconbtn" id="mute">'+(muted?'🔇':'🔊')+'</button></div>'
+    + RULES_HTML
+    + SONG_HTML
+    +'<div class="card center"><div class="emo">'+CONFIG.introEmoji+'</div><div class="big">'+CONFIG.introBig+'</div>'
+    +'<div style="font-size:16px;color:#5b6672;font-weight:700;line-height:1.85;text-align:left">'+INTRO_HTML+'</div>'
+    +'<div style="margin-top:18px"><button class="btn" id="go">开始闯关</button></div></div>';
+  document.getElementById('mute').onclick=()=>{ muted=!muted; renderIntro(); };
+  document.getElementById('go').onclick=()=>{ beep(true); S.stage='play'; render(); };
+}
+newGame();
+</script>
+</body>
+</html>
